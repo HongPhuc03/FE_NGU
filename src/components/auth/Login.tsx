@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import type { CredentialResponse } from '@react-oauth/google';
 import { useAuth } from '../../contexts/AuthContext';
@@ -12,7 +12,7 @@ const Login = () => {
     });
     const navigate = useNavigate();
     const { login } = useAuth();
-
+    const [error, setError] = useState('');
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -29,8 +29,15 @@ const Login = () => {
             login(accessToken, appUser);
             navigate('/tim-tro');
              window.location.reload();
-        } catch (error) {
-            console.error('Login failed:', error);
+        } catch (err) {
+            console.error('Login failed:', err);
+            const axiosError = err as AxiosError<{ message?: string }>;
+            const errorMessage =
+                axiosError.response?.data?.message ||
+                axiosError.message ||
+                'Có lỗi xảy ra khi đăng nhập';
+            setError(errorMessage);
+            console.error('Error creating room:', errorMessage);
             // Handle error (show message to user)
         }
     };
@@ -70,7 +77,13 @@ const Login = () => {
                                 <h1 className="text-primary h3 mb-4">ROOMNEAR</h1>
                             </Link>
                         </div>
-
+                        {error && (
+                            <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                                {error}
+                                <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        )}
                         <div className="card border-0 shadow-sm">
                             <div className="card-body p-4">
                                 <div className="text-center mb-4">

@@ -15,7 +15,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './styles/main.css';
 import LandlordPage from './pages/LandlordPage';
-
+import Payment from './pages/Payment';
+import PaymentSuccess from './pages/PaymentSuccess';
+import AdminPage from './pages/AdminPage';
+import PaymentHistory from './components/PaymentHistory';
 const App: React.FC = () => {
   return (
     <AuthProvider>
@@ -33,12 +36,11 @@ const App: React.FC = () => {
               <Route path="/phong/:id" element={<RoomDetail />} />
               <Route path="/cong-dong" element={<Community />} />
               <Route path="/ho-so" element={<Profile />} />
-              <Route 
-                path="/chu-ho" 
-                element={
-                    <LandlordPage />
-                } 
-              />
+              <Route path="/chu-ho" element={<LandlordPage />} />
+              <Route path="/thanh-toan" element={<Payment />} />
+              <Route path="/thanh-toan-thanh-cong" element={<PaymentSuccess/>}/>
+              <Route path="/admin" element={<AdminPage />} />
+              <Route path="/lich-su-thanh-toan" element={<PaymentHistory />} />
             </Routes>
           </main>
           <Footer />

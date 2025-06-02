@@ -63,6 +63,7 @@ const RoomDetail: React.FC = () => {
     const [room, setRoom] = useState<Room | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
     // Default center coordinates (Da Nang)
     const defaultCenter: [number, number] = [16.047079, 108.206230];
@@ -126,177 +127,159 @@ const RoomDetail: React.FC = () => {
     // Lấy danh sách url ảnh từ houseImages
     const imageUrls = room.houseImages?.map((img: { imageUrl: string }) => img.imageUrl) || [];
     const defaultImage = '/img/imgLandingPage.png';
-    const mainImage = imageUrls.length > 0 ? imageUrls[0] : defaultImage;
-    const additionalImages = imageUrls.length > 1 ? imageUrls.slice(1, 4).map(url => url) : [];
+    const mainImage = imageUrls.length > 0 ? imageUrls[selectedImageIndex] : defaultImage;
+    const additionalImages = imageUrls.length > 1 ? imageUrls : [];
 
     return (
-        <div 
-            className="room-detail-container min-vh-100"
+        <div
             style={{
-                backgroundImage: 'url("/img/backgroundRoomDetail.jpg")',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                backgroundColor: 'rgba(241, 245, 249, 0.9)',
-                backgroundBlendMode: 'overlay',
-                paddingTop: '80px'
+                maxWidth: 1100,
+                margin: '0 auto',
+                padding: 12,
+                minHeight: 'unset',
+                background: 'linear-gradient(180deg, #eaf3fb 0%, #f8fbff 100%)',
+                fontFamily: 'inherit',
             }}
         >
-            <div className="position-relative" style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
-                {/* Thư viện ảnh chính */}
-                <div className="position-relative mb-3">
-                    {/* Nhãn giá */}
-                    <div className="position-absolute start-0 top-0 m-3 z-1">
-                        <div className="bg-white rounded-pill d-flex align-items-center p-2" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                            <div className="bg-primary rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
+            {/* Hàng trên: Ảnh chính | (thumbnail ngang + map + nút) */}
+            <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', marginBottom: 12 }}>
+                {/* Ảnh chính */}
+                <div style={{ position: 'relative', width: 420, height: 320, borderRadius: 18, overflow: 'hidden', background: '#eee', boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
+                    {/* Nhãn giá + số phòng còn trống */}
+                    <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 2 }}>
+                        <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.10)', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div style={{ background: '#2F80ED', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <i className="bi bi-camera-video fs-6 text-white"></i>
                             </div>
                             <div>
-                                <div className="text-primary small" style={{ fontSize: '12px' }}>Còn trống {room.numberOfPeople || 0} người</div>
-                                <div className="fw-bold" style={{ fontSize: '14px', color: '#2F80ED' }}>
-                                    {room.price ? room.price.toLocaleString() : '0'} VNĐ<span style={{ fontSize: '12px' }}>/tháng</span>
-                                </div>
+                               
+                                <div style={{ color: '#2F80ED', fontWeight: 700, fontSize: 10 }}>{room.price ? room.price.toLocaleString() : '0'} VND <span style={{ fontSize: 14, fontWeight: 400 }}>/tháng</span></div>
                             </div>
                         </div>
                     </div>
-
-                    {/* Thư viện ảnh */}
-                    <div className="container-fluid px-0">
-                        <div className="row g-2">
-                            <div className="col-12 col-md-8">
-                                <img
-                                    src={mainImage}
-                                    alt="Ảnh chính"
-                                    className="w-100"
-                                    style={{ height: '350px', objectFit: 'cover', borderRadius: '8px' }}
-                                />
+                    {/* Ảnh chính */}
+                    <img
+                        src={mainImage}
+                        alt="Ảnh chính"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
+                    {/* Tên phòng + địa chỉ overlay dưới */}
+                    <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 2, padding: 0 }}>
+                        <div style={{ background: '#fff', borderRadius: '0 0 18px 18px', boxShadow: '0 -2px 8px rgba(0,0,0,0.04)', padding: '16px 20px 12px 60px', position: 'relative', minHeight: 56 }}>
+                            <div style={{ position: 'absolute', left: 20, top: 16, background: '#2F80ED', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <i className="bi bi-house-door fs-5 text-white"></i>
                             </div>
-                            <div className="col-md-4 d-none d-md-block">
-                                <div className="row g-2">
-                                    {additionalImages.map((url, index) => (
-                                        <div key={index} className="col-12">
-                                            <img
-                                                src={url}
-                                                alt={`Ảnh phòng ${index + 2}`}
-                                                className="w-100"
-                                                style={{ height: '114px', objectFit: 'cover', borderRadius: '8px' }}
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Thông tin phòng */}
-                    <div className="position-absolute bottom-0 start-0 m-3">
-                        <div className="bg-white rounded-3 p-2" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                            <div className="d-flex align-items-center">
-                                <div className="bg-primary rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}>
-                                    <i className="bi bi-house-door fs-5 text-white"></i>
-                                </div>
-                                <div>
-                                    <h5 className="mb-1 fw-bold text-primary" style={{ fontSize: '16px' }}>{room.name}</h5>
-                                    <p className="mb-0 text-muted" style={{ fontSize: '14px' }}>{room.address}</p>
-                                </div>
-                            </div>
+                            <div style={{ fontWeight: 700, fontSize: 18, color: '#2F80ED' }}>{room.name}</div>
+                            <div style={{ fontSize: 14, color: '#888', fontWeight: 500 }}>{room.address}</div>
                         </div>
                     </div>
                 </div>
-
-                <div className="row g-3">
-                    <div className="col-md-8">
-                        {/* Bản đồ và nút hành động */}
-                        <div className="position-relative">
-                            <div style={{ height: '300px', borderRadius: '12px', overflow: 'hidden' }}>
-                                <MapContainer
-                                    center={mapCenter}
-                                    zoom={15}
-                                    style={{ height: '100%', width: '100%' }}
-                                >
-                                    <TileLayer
-                                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                    />
-                                    {room.absoluteLocation && 
-                                     typeof room.absoluteLocation.latitude === 'number' && 
-                                     !isNaN(room.absoluteLocation.latitude) &&
-                                     typeof room.absoluteLocation.longitude === 'number' && 
-                                     !isNaN(room.absoluteLocation.longitude) && (
+                {/* Cột phải: thumbnail ngang + map + nút */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12, minWidth: 320 }}>
+                    {/* Thumbnail ngang */}
+                    <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4 }}>
+                        {additionalImages.map((url, index) => (
+                            <div
+                                key={index}
+                                onClick={() => setSelectedImageIndex(index)}
+                                style={{
+                                    width: 90,
+                                    height: 68,
+                                    borderRadius: 12,
+                                    overflow: 'hidden',
+                                    border: selectedImageIndex === index ? '2px solid #2F80ED' : '1px solid #eee',
+                                    cursor: 'pointer',
+                                    background: '#fff',
+                                    boxShadow: selectedImageIndex === index ? '0 2px 8px #2F80ED22' : 'none',
+                                    transition: 'border 0.2s, box-shadow 0.2s',
+                                }}
+                                onMouseOver={e => e.currentTarget.style.border = '2px solid #90caf9'}
+                                onMouseOut={e => e.currentTarget.style.border = selectedImageIndex === index ? '2px solid #2F80ED' : '1px solid #eee'}
+                            >
+                                <img
+                                    src={url}
+                                    alt={`Ảnh phòng ${index + 1}`}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                    {/* Map + nút */}
+                    <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', padding: 0, width: '100%', overflow: 'hidden', position: 'relative', minHeight: 200 }}>
+                        <div style={{ height: 200, width: '100%' }}>
+                            <MapContainer
+                                center={mapCenter}
+                                zoom={15}
+                                style={{ height: '100%', width: '100%' }}
+                            >
+                                <TileLayer
+                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                />
+                                {room.absoluteLocation &&
+                                    typeof room.absoluteLocation.latitude === 'number' &&
+                                    !isNaN(room.absoluteLocation.latitude) &&
+                                    typeof room.absoluteLocation.longitude === 'number' &&
+                                    !isNaN(room.absoluteLocation.longitude) && (
                                         <Marker position={[room.absoluteLocation.latitude, room.absoluteLocation.longitude]}>
                                             <Popup>{room.address}</Popup>
                                         </Marker>
                                     )}
-                                </MapContainer>
-                            </div>
-                            <div className="position-absolute bottom-0 start-0 w-100 p-2 d-flex justify-content-between">
-                                <button className="btn btn-primary px-3 py-1 fw-bold" style={{ fontSize: '14px' }}>
-                                    THUÊ NGAY
-                                    <i className="bi bi-arrow-right ms-2"></i>
-                                </button>
-                                <button className="btn btn-light px-3 py-1 fw-bold" style={{ fontSize: '14px' }}>
-                                    BẢN ĐỒ
-                                    <i className="bi bi-arrow-right ms-2"></i>
-                                </button>
+                            </MapContainer>
+                        </div>
+                        <div style={{ display: 'flex', gap: 12, marginTop: 12, marginLeft: 12, marginBottom: 12 }}>
+                            <button className="btn btn-primary px-3 py-1 fw-bold" style={{ fontSize: '16px', borderRadius: 8 }}>
+                                THUÊ NGAY
+                            </button>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {/* Hàng dưới: Mô tả + chủ phòng */}
+            <div style={{ display: 'flex', gap: 20, alignItems: 'stretch' }}>
+                {/* Mô tả chung */}
+                <div style={{ flex: 2, background: '#fff', borderRadius: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', padding: 16, minHeight: 120, display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
+                        <div style={{ background: '#2F80ED', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                            <i className="bi bi-file-text text-white fs-5"></i>
+                        </div>
+                        <h5 style={{ margin: 0, color: '#2F80ED', fontWeight: 700, fontSize: 20 }}>MÔ TẢ CHUNG</h5>
+                    </div>
+                    <div style={{ fontSize: 15, color: '#222', lineHeight: 1.7 }}>{room.description}</div>
+                </div>
+                {/* Chủ phòng */}
+                <div style={{ flex: 1, background: '#fff', borderRadius: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', padding: 16, minHeight: 120, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
+                        <img
+                            src={room.appUser?.avatar || '/img/imgLandingPage.png'}
+                            alt={room.appUser?.displayName || 'avatar'}
+                            style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: '2px solid #2F80ED' }}
+                        />
+                        <div>
+                            <div style={{ fontWeight: 700, fontSize: 18, color: '#2F80ED' }}>{room.appUser?.displayName || 'Chủ phòng'}</div>
+                            <div style={{ color: '#2F80ED', fontSize: 18, fontWeight: 700, letterSpacing: 1 }}>SDT: {room.appUser?.number ? room.appUser.number.replace(/(\d{4})(\d{3})(\d{3})/, '$1$2$3').replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3') : 'Chưa cập nhật'}</div>
+                            <div style={{ color: '#FFD600', fontSize: 18 }}>
+                                {[...Array(5)].map((_, index) => (
+                                    <i
+                                        key={index}
+                                        className={`bi bi-star${index < (room.rate || 0) ? '-fill' : ''} me-1`}
+                                    ></i>
+                                ))}
                             </div>
                         </div>
                     </div>
-
-                    <div className="col-md-4">
-                        {/* Mô tả */}
-                        <div className="bg-primary rounded-3 p-3 mb-3 text-white">
-                            <div className="d-flex align-items-center mb-2">
-                                <div className="bg-white rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
-                                    <i className="bi bi-file-text text-primary fs-6"></i>
-                                </div>
-                                <h6 className="mb-0 fw-bold">MÔ TẢ CHUNG</h6>
-                            </div>
-                            <p className="mb-0" style={{ fontSize: '14px', lineHeight: '1.6' }}>{room.description}</p>
-                        </div>
-
-                        {/* Liên hệ */}
-                        <div className="bg-white rounded-3 p-3" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                            <div className="d-flex align-items-center mb-3">
-                                <img
-                                    src={'/img/imgLandingPage.png'}
-                                    alt={'cc'}
-                                    className="rounded-circle me-2"
-                                    width="48"
-                                    height="48"
-                                    style={{ objectFit: 'cover' }}
-                                />
-                                <div>
-                                    <h6 className="mb-1 fw-bold">{room.name}</h6>
-                                    <div className="text-warning" style={{ fontSize: '12px' }}>
-                                        {[...Array(5)].map((_, index) => (
-                                            <i
-                                                key={index}
-                                                className={`bi bi-star${index < (room.rate || 0) ? '-fill' : ''} me-1`}
-                                            ></i>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="mb-3">
-                                <div className="d-flex align-items-center">
-                                    <h6 className="mb-0 me-2 fw-bold" style={{ fontSize: '14px' }}>SĐT:</h6>
-                                    <span className="text-primary fw-bold" style={{ fontSize: '14px' }}>
-                                        {room.appUser?.number || 'Chưa cập nhật'}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="d-grid gap-2">
-                                <button className="btn btn-outline-primary py-2 fw-bold" style={{ fontSize: '14px' }}>
-                                    <i className="bi bi-chat-dots me-2"></i>
-                                    NHẮN TIN
-                                </button>
-                                <button className="btn btn-primary py-2 fw-bold" style={{ fontSize: '14px' }}>
-                                    <i className="bi bi-telephone me-2"></i>
-                                    GỌI NGAY
-                                </button>
-                            </div>
-                        </div>
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                        <button className="btn btn-outline-primary py-2 fw-bold" style={{ fontSize: '15px', borderRadius: 8, flex: 1 }}>
+                            <i className="bi bi-chat-dots me-2"></i>
+                            NHẮN TIN
+                        </button>
+                        <button className="btn btn-primary py-2 fw-bold" style={{ fontSize: '15px', borderRadius: 8, flex: 1 }}>
+                            <i className="bi bi-telephone me-2"></i>
+                            GỌI NGAY
+                        </button>
                     </div>
+                    <div style={{ fontSize: 14, color: '#444', lineHeight: 1.6 }}>{room.description}</div>
                 </div>
             </div>
         </div>

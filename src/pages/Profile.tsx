@@ -2,26 +2,64 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 
+interface SubscriptionPlan {
+  id: number;
+  name: string;
+  maxRooms: number;
+  duration: number;
+  price: number;
+}
+
+interface Subscription {
+  id: number;
+  userId: string;
+  subscriptionPlanId: number;
+  startDate: string;
+  endDate: string;
+  subscriptionPlan: SubscriptionPlan;
+}
+
+interface UserLocation {
+  id: number;
+  ing: number;
+  lat: number;
+}
+
 interface ProfileData {
+  id: string;
   displayName: string;
-  username: string;
+  userName: string;
   email: string;
   password: string;
   isDisabled: boolean;
-  phoneNumber: string;
+  number: string;
   address: string;
+  role: number;
+  avatar: string;
+  userRole: number;
+  isDisable: boolean;
+  numberOfHouse: number;
+  userLocation: UserLocation;
+  subscription: Subscription;
 }
 
 const Profile = () => {
-  const { user } = useAuth();
   const [profileData, setProfileData] = useState<ProfileData>({
+    id: '',
     displayName: '',
-    username: '',
+    userName: '',
     email: '',
     password: '',
     isDisabled: false,
-    phoneNumber: '',
-    address: ''
+    number: '',
+    address: '',
+    role: 0,
+    avatar: '',
+    userRole: 0,
+    isDisable: false,
+    numberOfHouse: 0,
+    userLocation: { id: 0, ing: 0, lat: 0 },
+    subscription: { id: 0, userId: '', subscriptionPlanId: 0, startDate: '', endDate: '', subscriptionPlan: { id: 0, name: '', maxRooms: 0, duration: 0, price: 0 } },
   });
   const [isEditing, setIsEditing] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -32,7 +70,7 @@ const Profile = () => {
 
   const fetchProfileData = async () => {
     try {
-      const response = await axios.get('https://localhost:7135/api/Auth/Me', {
+      const response = await axios.get('https://localhost:7135/api/User/UserDetail', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -57,7 +95,7 @@ const Profile = () => {
       // Create update data object with empty strings for unfilled fields
       const updateData = {
         displayName: profileData.displayName || '',
-        phoneNumber: profileData.phoneNumber || '',
+        number: profileData.number || '',
         password: profileData.password || '',
         address: profileData.address || ''
       };
@@ -112,13 +150,13 @@ const Profile = () => {
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="username" className="form-label">Tên đăng nhập</label>
+                  <label htmlFor="userName" className="form-label">Tên đăng nhập</label>
                   <input
                     type="text"
                     className="form-control"
-                    id="username"
-                    name="username"
-                    value={profileData.username}
+                    id="userName"
+                    name="userName"
+                    value={profileData.userName}
                     onChange={handleChange}
                     disabled={!isEditing}
                   />
@@ -152,15 +190,16 @@ const Profile = () => {
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="phoneNumber" className="form-label">Số điện thoại</label>
+                  <label htmlFor="number" className="form-label">Số điện thoại</label>
                   <input
                     type="tel"
                     className="form-control"
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    value={profileData.phoneNumber}
+                    id="number"
+                    name="number"
+                    value={profileData.number}
                     onChange={handleChange}
                     disabled={!isEditing}
+                    placeholder="08985248955"
                   />
                 </div>
 
@@ -176,6 +215,41 @@ const Profile = () => {
                     disabled={!isEditing}
                   />
                 </div>
+
+                <div className="mb-3 d-flex align-items-center">
+                  <label className="form-label mb-0 me-2">Vai trò:</label>
+                  <div className="badge bg-primary fs-6 py-2 px-3">
+                    {profileData.userRole === 1 && "Chủ trọ"}
+                    {profileData.userRole === 2 && "Người xem trọ"}
+                    {profileData.userRole !== 1 && profileData.userRole !== 2 && "Admin"}
+                  </div>
+                </div>
+
+                {profileData.subscription && (
+                  <div className="mb-3">
+                    <label className="form-label">Thông tin gói đăng ký:</label>
+                    <div className="card bg-light">
+                      <div className="card-body">
+                        <p className="mb-2">
+                          <strong>Gói đăng ký:</strong> {profileData.subscription.subscriptionPlan.name}
+                        </p>
+                        <p className="mb-2">
+                          <strong>Số phòng đã đăng: </strong> {profileData.numberOfHouse}/{profileData.subscription.subscriptionPlan.maxRooms}
+                        </p>
+                        <p className="mb-0">
+                          <strong>Ngày kết thúc:</strong>{' '}
+                          {new Date(profileData.subscription.endDate).toLocaleDateString('vi-VN', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {isEditing && (
                   <div className="d-grid gap-2">

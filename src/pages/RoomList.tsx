@@ -1,12 +1,11 @@
-import { lazy, Suspense, useState, useEffect } from 'react';
+import { lazy, Suspense, useState, useEffect, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-
-// Fix Leaflet default marker icon issue
+import * as signalR from '@microsoft/signalr';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import axios from 'axios';
@@ -51,24 +50,21 @@ const tooltipStyle = {
 
 interface AbsoluteLocation {
     id: number;
-    lat: number;
-    ing: number;
-}
-
-interface Comment {
-    id: number;
-    content: string;
-    createdAt: string;
+    latitude: number;
+    longitude: number;
 }
 
 interface AppUser {
     id: string;
     displayName: string;
-    number: string;
-    email: string | null;
+    number: string | null;
+    email: string;
     avatar: string | null;
-    isDisable: boolean;
-    location?: UserLocation;
+}
+
+interface HouseImage {
+    id: number;
+    imageUrl: string;
 }
 
 interface Room {
@@ -77,9 +73,10 @@ interface Room {
     description: string;
     area: number;
     absoluteLocation: AbsoluteLocation;
-    houseImages: string[] | null;
-    comments: Comment[];
+    houseImages: HouseImage[];
+    comments: null;
     appUser: AppUser;
+    price: number;
 }
 
 interface UserLocation {
@@ -90,14 +87,17 @@ interface UserLocation {
 }
 
 const RoomList = () => {
-    const [activeFilter, setActiveFilter] = useState('tất cả');
-    const [searchQuery, setSearchQuery] = useState('');
     const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
     const [rooms, setRooms] = useState<Room[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+    const [minPrice, setMinPrice] = useState('');
+    const [maxPrice, setMaxPrice] = useState('');
+    const [addressFilter, setAddressFilter] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const recordsPerPage = 6;
     const navigate = useNavigate();
     const { user } = useAuth();
 
@@ -108,6 +108,7 @@ const RoomList = () => {
                     Authorization: `Bearer ${localStorage.getItem('accessToken')}`
                 }
             });
+            console.log(response.data.userLocation)
             if (response.data && response.data.userLocation) {
                 setUserLocation({
                     id: response.data.userLocation.id,
@@ -126,24 +127,65 @@ const RoomList = () => {
         }
     }, [user]);
 
-    const fetchRooms = async () => {
+    const fetchRooms = useCallback(async () => {
         try {
-            const response = await axios.post('https://localhost:7135/api/House/GetAllHouse');
+            let url = 'https://localhost:7135/api/House/GetAllHouse';
+            const params = new URLSearchParams();
+
+            if (minPrice) params.append('minPrice', minPrice);
+            if (maxPrice) params.append('maxPrice', maxPrice);
+            if (addressFilter) params.append('address', addressFilter);
+
+            if (params.toString()) {
+                url += '?' + params.toString();
+            }
+
+            const response = await axios.post(url);
             if (!response.data) {
                 throw new Error('Failed to fetch rooms');
             }
-            const data = await response.data;
-            setRooms(data);
+            setRooms(response.data);
             setLoading(false);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
             setLoading(false);
         }
-    };
+    }, [minPrice, maxPrice, addressFilter]);
 
     useEffect(() => {
         fetchRooms();
-    }, []);
+    }, [fetchRooms]);
+
+    const initSignalR = useCallback(() => {
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("https://localhost:7135/houseHub", {
+                skipNegotiation: true,
+                transport: signalR.HttpTransportType.WebSockets
+            })
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("HouseCreated", () => {
+            fetchRooms();
+        });
+        connection.on("HouseUpdate", () => {
+            fetchRooms();
+        });
+        connection.on("HouseDelete", (data) => {
+            setRooms(prevRooms => prevRooms.filter(room => room.id !== data.id));
+        });
+
+        connection.start()
+            .catch(err => console.error("Kết nối SignalR thất bại:", err));
+
+        return () => {
+            connection.stop();
+        };
+    }, [fetchRooms]);
+
+    useEffect(() => {
+        initSignalR();
+    }, [initSignalR]);
 
     const handleViewDetail = (roomId: number, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -151,9 +193,7 @@ const RoomList = () => {
     };
 
     const handleRoomClick = (room: Room, e?: React.MouseEvent) => {
-        // Prevent event bubbling
         e?.stopPropagation();
-
         if (selectedRoom?.id === room.id) {
             setSelectedRoom(null);
         } else {
@@ -161,38 +201,66 @@ const RoomList = () => {
         }
     };
 
-    // Calculate center position based on user location or room locations
-    const center = userLocation ? 
-        { lat: userLocation.lat, lng: userLocation.ing, count: 1 } :
-        rooms.reduce(
-            (acc, room) => {
-                if (room.appUser?.location && 
-                    typeof room.appUser.location.lat === 'number' && 
-                    !isNaN(room.appUser.location.lat) &&
-                    typeof room.appUser.location.ing === 'number' && 
-                    !isNaN(room.appUser.location.ing)) {
-                    acc.lat += room.appUser.location.lat;
-                    acc.lng += room.appUser.location.ing;
-                    acc.count++;
-                }
-                return acc;
-            },
-            { lat: 0, lng: 0, count: 0 }
-        );
-
-    // Default to Da Nang coordinates if no valid coordinates found
     const defaultCenter: [number, number] = [16.047079, 108.206230];
 
-    // Calculate average only if we have valid coordinates
-    const mapCenter: [number, number] = center.count > 0
-        ? [center.lat / center.count, center.lng / center.count]
-        : defaultCenter;
+const center: [number, number] =
+  userLocation?.lat != null && userLocation?.ing != null
+    ? [userLocation.lat, userLocation.ing]
+    : defaultCenter;
 
-    // Validate the calculated center
-    const finalCenter: [number, number] = [
-        isNaN(mapCenter[0]) ? defaultCenter[0] : mapCenter[0],
-        isNaN(mapCenter[1]) ? defaultCenter[1] : mapCenter[1]
-    ];
+
+    // Calculate pagination
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    const currentRecords = rooms.slice(indexOfFirstRecord, indexOfLastRecord);
+    const totalPages = Math.ceil(rooms.length / recordsPerPage);
+
+    const handlePageChange = (pageNumber: number) => {
+        setCurrentPage(pageNumber);
+    };
+
+    const userMarker = userLocation && userLocation.lat && userLocation.ing ? (
+        <Marker
+            position={[userLocation.lat, userLocation.ing]}
+            icon={L.icon({
+                iconUrl: icon,
+                shadowUrl: iconShadow,
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                // Use a red marker icon if you have one, or override with CSS below
+                className: 'user-marker-red'
+            })}
+        >
+            <Tooltip
+                permanent
+                direction="top"
+                offset={[0, -20]}
+                opacity={1}
+                interactive={true}
+            >
+                <div
+                    style={{
+                        ...tooltipStyle.container,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        fontSize: '12px',
+                        padding: '4px 8px',
+                        minWidth: '100px',
+                        backgroundColor: '#e74c3c', // Red background
+                        color: '#fff', // White text
+                        border: '2px solid #c0392b'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                    }}
+                >
+                    <span>
+                        <strong>Vị trí của bạn</strong>
+                    </span>
+                </div>
+            </Tooltip>
+        </Marker>
+    ) : null;
 
     if (loading) {
         return (
@@ -214,7 +282,6 @@ const RoomList = () => {
 
     return (
         <div className="room-list-page" style={{ backgroundImage: 'url("./img/backgroundRoomList.jpg")', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', minHeight: '100vh', padding: '2rem' }}>
-            {/* Map Section - Increased height */}
             <div style={{
                 height: '600px',
                 width: '100%',
@@ -224,7 +291,7 @@ const RoomList = () => {
                 overflow: 'hidden'
             }}>
                 <MapContainer
-                    center={finalCenter}
+                    center={center}
                     zoom={12}
                     style={{ height: '100%', width: '100%' }}
                     scrollWheelZoom={true}
@@ -235,30 +302,20 @@ const RoomList = () => {
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
-                    {/* Đoạn code này map qua mảng rooms để hiển thị marker cho mỗi phòng trọ trên bản đồ */}
+                    {userMarker}
                     {rooms.map((room) => (
-                        /* Kiểm tra điều kiện để đảm bảo phòng có vị trí hợp lệ:
-                           1. Phải có absoluteLocation
-                           2. Latitude phải là số và không phải NaN  
-                           3. Longitude phải là số và không phải NaN
-                           
-                           Nếu thiếu các điều kiện này, marker sẽ không hiển thị được
-                           Cần đảm bảo dữ liệu room.absoluteLocation được set đúng từ API
-                        */
                         room.absoluteLocation &&
-                        typeof room.absoluteLocation.lat === 'number' && 
-                        !isNaN(room.absoluteLocation.lat) &&
-                        typeof room.absoluteLocation.ing === 'number' && 
-                        !isNaN(room.absoluteLocation.ing) && (
+                        typeof room.absoluteLocation.latitude === 'number' && 
+                        !isNaN(room.absoluteLocation.latitude) &&
+                        typeof room.absoluteLocation.longitude === 'number' && 
+                        !isNaN(room.absoluteLocation.longitude) && (
                             <React.Fragment key={room.id}>
-                                {/* Marker đánh dấu vị trí phòng trên bản đồ */}
                                 <Marker
-                                    position={[room.absoluteLocation.lat, room.absoluteLocation.ing]}
+                                    position={[room.absoluteLocation.latitude, room.absoluteLocation.longitude]}
                                     eventHandlers={{
                                         click: () => handleRoomClick(room),
                                     }}
                                 >
-                                    {/* Tooltip hiển thị thông tin khi hover vào marker */}
                                     <Tooltip
                                         permanent
                                         direction="top"
@@ -369,13 +426,13 @@ const RoomList = () => {
                                     </Popup>
                                 </Marker>
                                 {room.absoluteLocation && 
-                                 typeof room.absoluteLocation.lat === 'number' && 
-                                 !isNaN(room.absoluteLocation.lat) &&
-                                 typeof room.absoluteLocation.ing === 'number' && 
-                                 !isNaN(room.absoluteLocation.ing) && (
+                                 typeof room.absoluteLocation.latitude === 'number' && 
+                                 !isNaN(room.absoluteLocation.latitude) &&
+                                 typeof room.absoluteLocation.longitude === 'number' && 
+                                 !isNaN(room.absoluteLocation.longitude) && (
                                     <Suspense fallback={null}>
                                         <ZoomToMarker
-                                            position={[room.absoluteLocation.lat, room.absoluteLocation.ing]}
+                                            position={[room.absoluteLocation.latitude, room.absoluteLocation.longitude]}
                                             isSelected={selectedRoom?.id === room.id}
                                         />
                                     </Suspense>
@@ -386,60 +443,69 @@ const RoomList = () => {
                 </MapContainer>
             </div>
 
-            {/* Content Section - Adjusted spacing */}
-            <div className="container py-4"> {/* Reduced top padding due to increased map height */}
+            <div className="container py-4">
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <h2 className="mb-0">GẦN BẠN</h2>
                         <p className="text-muted mb-0">Những căn phòng gần vị trí của bạn nhất</p>
                     </div>
-                    <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
-                        <i className="bi bi-plus-circle me-2"></i>
-                        Tạo trọ mới
-                    </button>
-                </div>
-
-                {/* Filters */}
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                    <div className="filters">
-                        <button
-                            className={`btn btn-sm me-2 ${activeFilter === 'tất cả' ? 'btn-primary' : 'btn-outline-primary'}`}
-                            onClick={() => setActiveFilter('tất cả')}
-                        >
-                            tất cả
-                        </button>
-                        <button
-                            className={`btn btn-sm me-2 ${activeFilter === 'giá phòng' ? 'btn-primary' : 'btn-outline-primary'}`}
-                            onClick={() => setActiveFilter('giá phòng')}
-                        >
-                            giá phòng
-                        </button>
-                        <button
-                            className={`btn btn-sm ${activeFilter === 'gần đây' ? 'btn-primary' : 'btn-outline-primary'}`}
-                            onClick={() => setActiveFilter('gần đây')}
-                        >
-                            gần đây
-                        </button>
-                    </div>
-                    <div className="search-box">
-                        <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Search..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
+                    <div className="filter-buttons mb-3">
                     </div>
                 </div>
+                <div className="filter-section p-3 bg-white rounded-lg shadow-sm mb-4">
+                    <div className="row g-3">
+                        <div className="col-md-4">
+                            <div className="input-group">
+                                <span className="input-group-text bg-light border-end-0">
+                                    <i className="bi bi-currency-dollar"></i>
+                                </span>
+                                <input 
+                                    type="number" 
+                                    className="form-control border-start-0" 
+                                    placeholder="Giá thấp nhất"
+                                    value={minPrice}
+                                    onChange={(e) => setMinPrice(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <div className="col-md-4">
+                            <div className="input-group">
+                                <span className="input-group-text bg-light border-end-0">
+                                    <i className="bi bi-currency-dollar"></i>
+                                </span>
+                                <input 
+                                    type="number" 
+                                    className="form-control border-start-0" 
+                                    placeholder="Giá cao nhất"
+                                    value={maxPrice}
+                                    onChange={(e) => setMaxPrice(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <div className="col-md-4">
+                            <div className="input-group">
+                                <span className="input-group-text bg-light border-end-0">
+                                    <i className="bi bi-geo-alt"></i>
+                                </span>
+                                <input 
+                                    type="text" 
+                                    className="form-control border-start-0" 
+                                    placeholder="Nhập địa chỉ"
+                                    value={addressFilter}
+                                    onChange={(e) => setAddressFilter(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                {/* Room Grid */}
                 <div className="row g-4">
-                    {rooms.length === 0 ? (
+                    {currentRecords.length === 0 ? (
                         <div className="col-12 text-center">
                             <p>Không tìm thấy phòng nào.</p>
                         </div>
                     ) : (
-                        rooms.map(room => (
+                        currentRecords.map(room => (
                             <div
                                 key={room.id}
                                 className="col-md-6 col-lg-4"
@@ -455,7 +521,7 @@ const RoomList = () => {
                             >
                                 <div className={`card h-100 border-0 shadow-sm ${selectedRoom?.id === room.id ? 'border border-primary' : ''}`}>
                                     <img 
-                                        src={room.houseImages && room.houseImages.length > 0 ? room.houseImages[0] : './img/imgLandingPage.png'} 
+                                        src={room.houseImages?.[0]?.imageUrl ?? './img/imgLandingPage.png'}
                                         className="card-img-top" 
                                         alt={room.address} 
                                         style={{ height: '200px', objectFit: 'cover' }} 
@@ -484,13 +550,40 @@ const RoomList = () => {
                     )}
                 </div>
 
-                {rooms.length > 0 && (
-                    <div className="text-center mt-5">
-                        <button className="btn btn-primary px-4">
-                            Xem thêm
-                        </button>
-                    </div>
-                )}
+
+                {/* Pagination */}
+                <nav aria-label="Page navigation" className="mt-4">
+                    <ul className="pagination justify-content-center">
+                        <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                            <button 
+                                className="page-link" 
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
+                            >
+                                Trước
+                            </button>
+                        </li>
+                        {[...Array(totalPages)].map((_, index) => (
+                            <li key={index + 1} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
+                                <button 
+                                    className="page-link" 
+                                    onClick={() => handlePageChange(index + 1)}
+                                >
+                                    {index + 1}
+                                </button>
+                            </li>
+                        ))}
+                        <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                            <button 
+                                className="page-link" 
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                            >
+                                Sau
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
             </div>
 
             <Suspense fallback={null}>
@@ -500,7 +593,7 @@ const RoomList = () => {
                     onSubmit={(roomData) => {
                         console.log(roomData);
                         setShowCreateModal(false);
-                        fetchRooms(); // Refresh the room list after creating a new room
+                        fetchRooms();
                     }}
                     fetchRooms={fetchRooms}
                 />

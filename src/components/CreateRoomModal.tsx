@@ -1,124 +1,72 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import axios from 'axios';
+import type { AxiosError } from 'axios';
 
 interface RoomFormData {
     name: string;
     address: string;
     price: number;
     area: number;
-    decription: string;
-    images: string[]; // Will store image URLs
+    description: string;
+    images: string[];
 }
 
 interface CreateRoomModalProps {
     show: boolean;
     onHide: () => void;
     onSubmit: (roomData: RoomFormData) => void;
-    fetchRooms: () => void; // Add new prop for fetching rooms
+    fetchRooms: () => void;
 }
 
 const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ show, onHide, onSubmit, fetchRooms }) => {
-    const [formData, setFormData] = useState<RoomFormData>({
+    const [formData, setFormData] = useState<Omit<RoomFormData, 'price'> & { priceInput: string }>({
         name: '',
         address: '',
-        price: 0,
+        priceInput: '',
         area: 0,
-        decription: '',
+        description: '',
         images: []
     });
-
-    const [priceText, setPriceText] = useState('');
+    const [parsedPrice, setParsedPrice] = useState<number | null>(null);
     const [selectedImages, setSelectedImages] = useState<File[]>([]);
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
-    const [dragActive, setDragActive] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const convertTextToNumber = (text: string): number => {
-        // Convert to lowercase and remove spaces
-        const cleanText = text.toLowerCase().replace(/\s+/g, '');
-        
-        // Check for "triệu" or "trieu"
-        if (cleanText.includes('triệu')) {
-            const number = parseFloat(cleanText.replace('triệu', ''));
-            if (!isNaN(number)) {
-                return number * 1000000;
-            }
+    // Parse price input
+    const parsePrice = (value: string) => {
+        const lower = value.toLowerCase().trim();
+        let number = 0;
+        if (lower.includes("triệu")) {
+            const n = parseFloat(lower.replace("triệu", "").trim().replace(",", "."));
+            if (!isNaN(n)) number = n * 1_000_000;
+        } else {
+            const cleaned = lower.replace(/,/g, "");
+            if (!isNaN(Number(cleaned))) number = Number(cleaned);
         }
-        
-        // Check for "nghìn" or "ngan"
-        if (cleanText.includes('ngàn') || cleanText.includes('nghìn')) {
-            const number = parseFloat(cleanText.replace(/ngàn|nghìn/g, ''));
-            if (!isNaN(number)) {
-                return number * 1000;
-            }
-        }
-        
-        // If no keywords found, try to parse as number
-        const number = parseFloat(cleanText);
-        return isNaN(number) ? 0 : number;
-    };
-
-    const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { value } = e.target;
-        setPriceText(value);
-        
-        // Convert text to number
-        const numericValue = convertTextToNumber(value);
-        
-        // Update formData
-        setFormData(prev => ({
-            ...prev,
-            price: numericValue
-        }));
-    };
-
-    const handlePriceClick = () => {
-        // Fill the number directly into input
-        setPriceText(formData.price.toString());
+        return number || null;
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: name === 'price' || name === 'area' ? Number(value) : value
-        }));
-    };
-
-    const handleDrag = (e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (e.type === "dragenter" || e.type === "dragover") {
-            setDragActive(true);
-        } else if (e.type === "dragleave") {
-            setDragActive(false);
+        if (name === 'price') {
+            setFormData(prev => ({ ...prev, priceInput: value }));
+            setParsedPrice(parsePrice(value));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: name === 'area' ? Number(value) : value
+            }));
         }
-    };
-
-    const handleDrop = (e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setDragActive(false);
-
-        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            handleFiles(e.dataTransfer.files);
-        }
-    };
-
-    const handleFiles = (files: FileList) => {
-        const newFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
-        setSelectedImages(prev => [...prev, ...newFiles]);
-        
-        // Create preview URLs for new files
-        const newUrls = newFiles.map(file => URL.createObjectURL(file));
-        setPreviewUrls(prev => [...prev, ...newUrls]);
     };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            handleFiles(e.target.files);
+            const files = Array.from(e.target.files).filter(file => file.type.startsWith('image/'));
+            setSelectedImages(prev => [...prev, ...files]);
+            const newUrls = files.map(file => URL.createObjectURL(file));
+            setPreviewUrls(prev => [...prev, ...newUrls]);
         }
     };
 
@@ -126,7 +74,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ show, onHide, onSubmi
         setSelectedImages(prev => prev.filter((_, i) => i !== index));
         setPreviewUrls(prev => {
             const newUrls = [...prev];
-            URL.revokeObjectURL(newUrls[index]); // Clean up the URL
+            URL.revokeObjectURL(newUrls[index]);
             return newUrls.filter((_, i) => i !== index);
         });
     };
@@ -135,43 +83,53 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ show, onHide, onSubmi
         e.preventDefault();
         setIsSubmitting(true);
         setError(null);
-        
+
         try {
             const accessToken = localStorage.getItem('accessToken');
-            console.log(accessToken);
             if (!accessToken) {
-                throw new Error('Vui lòng đăng nhập để tạo bài đăng');
+                throw new Error('Vui lòng đăng nhập để tạo phòng');
             }
 
-            // Generate URLs for images (you can modify this based on your needs)
-            const imageUrls = selectedImages.map((file, index) => {
-                // Example URL format: /images/room-{timestamp}-{index}.jpg
-                const timestamp = new Date().getTime();
-                return `/images/room-${timestamp}-${index}.jpg`;
+            // Create FormData to send files
+            const formDataToSend = new FormData();
+            formDataToSend.append('name', formData.name);
+            formDataToSend.append('address', formData.address);
+            formDataToSend.append('price', (parsedPrice ?? 0).toString());
+            formDataToSend.append('area', formData.area.toString());
+            formDataToSend.append('description', formData.description);
+
+            selectedImages.forEach((file) => {
+                formDataToSend.append('images', file);
             });
 
-            const submitData = {
-                ...formData,
-                images: imageUrls
-            };
-
-            // Call API to create house with Bearer token
-            const response = await axios.post('https://localhost:7135/api/House/CreateHouse', submitData, {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
+            const response = await axios.post(
+                'https://localhost:7135/api/House/CreateHouse',
+                formDataToSend,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'multipart/form-data'
+                    }
                 }
-            });
-            
+            );
+
             if (response.data) {
-                onSubmit(submitData);
+                onSubmit({
+                    ...formData,
+                    price: parsedPrice ?? 0,
+                    images: [] // hoặc truyền selectedImages nếu cần
+                });
+                fetchRooms();
                 onHide();
-            } else {
-                throw new Error('Failed to create house');
             }
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Có lỗi xảy ra khi tạo bài đăng');
-            console.error('Error creating house:', err);
+            const error = err as AxiosError<{ message?: string }>;
+            const errorMessage =
+                error.response?.data?.message ||
+                error.message ||
+                'Có lỗi xảy ra khi tạo phòng';
+            setError(errorMessage);
+            console.error('Error creating room:', errorMessage);
         } finally {
             setIsSubmitting(false);
         }
@@ -180,17 +138,17 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ show, onHide, onSubmi
     return (
         <Modal show={show} onHide={onHide} size="lg" centered>
             <Modal.Header closeButton>
-                <Modal.Title>Tạo bài đăng nhà trọ mới</Modal.Title>
+                <Modal.Title>Tạo phòng mới</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 {error && (
-                    <div className="alert alert-danger" role="alert">
+                    <div className="alert alert-danger">
                         {error}
                     </div>
                 )}
                 <Form onSubmit={handleSubmit}>
                     <Form.Group className="mb-3">
-                        <Form.Label>Tên nhà trọ</Form.Label>
+                        <Form.Label>Tên phòng</Form.Label>
                         <Form.Control
                             type="text"
                             name="name"
@@ -214,55 +172,22 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ show, onHide, onSubmi
                     <div className="row">
                         <div className="col-md-6">
                             <Form.Group className="mb-3">
-                                <Form.Label>Giá phòng (VND/tháng)</Form.Label>
+                                <Form.Label>Giá phòng (VND/Tháng)</Form.Label>
                                 <Form.Control
                                     type="text"
                                     name="price"
-                                    value={priceText}
-                                    onChange={handlePriceChange}
+                                    value={formData.priceInput}
+                                    onChange={handleInputChange}
                                     required
-                                    placeholder="Ví dụ: 1 triệu hoặc 1.5 triệu"
                                 />
-                                {formData.price > 0 && (
-                                    <div 
-                                        className="mt-2 p-2 border rounded"
-                                        style={{ 
-                                            cursor: 'pointer',
-                                            backgroundColor: '#f8f9fa',
-                                            transition: 'all 0.2s ease',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'space-between'
-                                        }}
-                                        onClick={handlePriceClick}
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.backgroundColor = '#e9ecef';
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.backgroundColor = '#f8f9fa';
-                                        }}
+                                {parsedPrice !== null && (
+                                    <div
+                                        className="text-primary mt-1"
+                                        style={{ cursor: "pointer" }}
+                                        title="Bấm để điền lại giá vào ô nhập"
+                                        onClick={() => setFormData(prev => ({ ...prev, priceInput: parsedPrice.toLocaleString("vi-VN") }))}
                                     >
-                                        <div>
-                                            <span style={{ 
-                                                fontSize: '1.1rem',
-                                                fontWeight: '500',
-                                                color: '#2c3e50'
-                                            }}>
-                                                {formData.price.toLocaleString()}
-                                            </span>
-                                            <span style={{ 
-                                                color: '#6c757d',
-                                                marginLeft: '4px'
-                                            }}>
-                                                VND
-                                            </span>
-                                        </div>
-                                        <div className="d-flex align-items-center">
-                                            <i className="bi bi-pencil-square text-primary me-1"></i>
-                                            <small className="text-primary">
-                                                Click để sửa
-                                            </small>
-                                        </div>
+                                        {parsedPrice.toLocaleString("vi-VN")}
                                     </div>
                                 )}
                             </Form.Group>
@@ -287,8 +212,8 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ show, onHide, onSubmi
                         <Form.Control
                             as="textarea"
                             rows={3}
-                            name="decription"
-                            value={formData.decription}
+                            name="description"
+                            value={formData.description}
                             onChange={handleInputChange}
                             required
                         />
@@ -296,65 +221,38 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ show, onHide, onSubmi
 
                     <Form.Group className="mb-3">
                         <Form.Label>Hình ảnh</Form.Label>
-                        <div
-                            className={`border rounded p-4 text-center ${dragActive ? 'border-primary bg-light' : ''}`}
-                            onDragEnter={handleDrag}
-                            onDragLeave={handleDrag}
-                            onDragOver={handleDrag}
-                            onDrop={handleDrop}
-                            style={{
-                                border: '2px dashed #ccc',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                transition: 'all 0.3s ease'
-                            }}
-                        >
-                            <input
-                                type="file"
-                                multiple
-                                accept="image/*"
-                                onChange={handleImageChange}
-                                style={{ display: 'none' }}
-                                id="image-upload"
-                            />
-                            <label htmlFor="image-upload" style={{ cursor: 'pointer', width: '100%' }}>
-                                <div className="text-center">
-                                    <i className="bi bi-cloud-upload fs-1 text-primary"></i>
-                                    <p className="mt-2 mb-0">Kéo thả ảnh vào đây hoặc click để chọn</p>
-                                    <small className="text-muted">Chấp nhận nhiều ảnh</small>
-                                </div>
-                            </label>
-                        </div>
-
+                        <Form.Control
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            onChange={handleImageChange}
+                        />
                         {previewUrls.length > 0 && (
                             <div className="mt-3">
-                                <h6 className="mb-2">Ảnh đã chọn ({previewUrls.length})</h6>
                                 <div className="d-flex gap-2 flex-wrap">
                                     {previewUrls.map((url, index) => (
-                                        <div key={index} className="position-relative" style={{ width: '100px' }}>
+                                        <div key={index} className="position-relative">
                                             <img
                                                 src={url}
                                                 alt={`Preview ${index + 1}`}
                                                 style={{
                                                     width: '100px',
                                                     height: '100px',
-                                                    objectFit: 'cover',
-                                                    borderRadius: '4px'
+                                                    objectFit: 'cover'
                                                 }}
                                             />
-                                            <button
-                                                type="button"
-                                                className="btn btn-danger btn-sm position-absolute"
-                                                style={{
-                                                    top: '-8px',
-                                                    right: '-8px',
-                                                    padding: '0.25rem 0.5rem',
-                                                    borderRadius: '50%'
-                                                }}
+                                            <Button
+                                                variant="danger"
+                                                size="sm"
                                                 onClick={() => removeImage(index)}
+                                                style={{
+                                                    position: 'absolute',
+                                                    top: 0,
+                                                    right: 0
+                                                }}
                                             >
-                                                <i className="bi bi-x"></i>
-                                            </button>
+                                                ×
+                                            </Button>
                                         </div>
                                     ))}
                                 </div>
@@ -367,23 +265,12 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ show, onHide, onSubmi
                 <Button variant="secondary" onClick={onHide} disabled={isSubmitting}>
                     Hủy
                 </Button>
-                <Button 
-                    variant="primary" 
-                    onClick={handleSubmit}
-                    disabled={isSubmitting}
-                >
-                    {isSubmitting ? (
-                        <>
-                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                            Đang tạo bài đăng...
-                        </>
-                    ) : (
-                        'Tạo bài đăng'
-                    )}
+                <Button variant="primary" onClick={handleSubmit} disabled={isSubmitting}>
+                    {isSubmitting ? 'Đang tạo...' : 'Tạo phòng'}
                 </Button>
             </Modal.Footer>
         </Modal>
     );
 };
 
-export default CreateRoomModal; 
+export default CreateRoomModal;
