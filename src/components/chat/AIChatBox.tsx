@@ -4,7 +4,7 @@ import './AIChatBox.css';
 
 interface Message {
     id: string;
-    text: string | JSX.Element;
+    text: string | React.JSX.Element;
     sender: 'user' | 'ai';
     timestamp: Date;
 }
@@ -63,14 +63,20 @@ const AIChatBox = () => {
 
             const data = await response.json();
             console.log(data.message.houses);
-            let aiMessageContent: string | JSX.Element = typeof data.message === 'string' ? data.message : JSON.stringify(data.message);
+            let aiMessageContent: string | React.JSX.Element = typeof data.message === 'string' ? data.message : JSON.stringify(data.message);
+
+            interface House {
+                id: string;
+                url: string;
+                name: string;
+            }
 
             if (Array.isArray(data.message.houses) && data.message.houses.length > 0) {
                 aiMessageContent = (
                     <div>
                         <p>{data.message.message}</p>
                         <ul className="list-unstyled mb-0">
-                            {data.message.houses.map((house: any) => (
+                            {data.message.houses.map((house: House) => (
                                 <li key={house.id}>
                                     <a href={house.url} target="_blank" rel="noopener noreferrer">
                                         {house.name}
