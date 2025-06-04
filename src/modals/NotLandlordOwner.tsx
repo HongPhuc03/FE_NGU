@@ -10,7 +10,7 @@ const NotOwnerModal: React.FC<NotOwnerModalProps> = ({ open, onClose, onBecomeOw
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div style={{ paddingTop: '80px' }}><div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-sm text-center relative">
         <div className="flex flex-col items-center">
           <div className="mb-4">
@@ -41,7 +41,8 @@ const NotOwnerModal: React.FC<NotOwnerModalProps> = ({ open, onClose, onBecomeOw
           )}
         </div>
       </div>
-    </div>
+    </div></div>
+    
   );
 };
 

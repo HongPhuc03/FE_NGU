@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -40,8 +40,6 @@ interface Room {
     };
 }
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 const LandlordPage = () => {
     const [rooms, setRooms] = useState<Room[]>([]);
     const [loading, setLoading] = useState(true);
@@ -49,7 +47,7 @@ const LandlordPage = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const navigate = useNavigate();
     const [showModal, setShowModal] = useState(false);
-
+const API_URL = import.meta.env.VITE_API_URL;
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         
@@ -90,6 +88,7 @@ const LandlordPage = () => {
         } catch (error) {
             setError('Failed to fetch rooms');
             setLoading(false);
+            console.error('Error fetching rooms:', error);
         }
     };
 
@@ -104,6 +103,7 @@ const LandlordPage = () => {
                 fetchLandlordRooms(); // Refresh the list
             } catch (error) {
                 setError('Failed to delete room');
+                console.error('Error deleting room:', error);
             }
         }
     };
@@ -137,94 +137,96 @@ const LandlordPage = () => {
         );
     }
 
-    return (<div style={{paddingTop: '80px'}}><div className="container py-2" >
-        <NotOwnerModal 
-            open={showModal} 
-            onClose={() => setShowModal(false)}
-            onBecomeOwner={() => {
-                navigate('/thanh-toan');
-            }}
-        />
-        {!showModal && (
-            <>
-                <div className="d-flex justify-content-between align-items-center mb-4" style={{paddingTop: '80px'}}>
-                    <h2>Quản lý phòng trọ</h2>
-                    <button 
-                        className="btn btn-primary"
-                        onClick={() => setShowCreateModal(true)}
-                    >
-                        <i className="bi bi-plus-circle me-2"></i>
-                        Thêm phòng mới
-                    </button>
-                </div>
-
-                {rooms.length === 0 ? (
-                    <div className="text-center py-5">
-                        <h4 className="text-muted">Bạn chưa có phòng trọ nào</h4>
-                        <p className="text-muted">Hãy thêm phòng trọ đầu tiên của bạn!</p>
+    return (
+        <div style={{ paddingTop: '80px' }}>
+        <div className="container py-2">
+            <NotOwnerModal 
+                open={showModal} 
+                onClose={() => setShowModal(false)}
+                onBecomeOwner={() => {
+                    navigate('/thanh-toan');
+                }}
+            />
+            {!showModal && (
+                <>
+                    <div className="d-flex justify-content-between align-items-center mb-4" style={{paddingTop: '80px'}}>
+                        <h2>Quản lý phòng trọ</h2>
+                        <button 
+                            className="btn btn-primary"
+                            onClick={() => setShowCreateModal(true)}
+                        >
+                            <i className="bi bi-plus-circle me-2"></i>
+                            Thêm phòng mới
+                        </button>
                     </div>
-                ) : (
-                    <div className="row g-4">
-                        {rooms.map(room => (
-                            <div key={room.id} className="col-md-6 col-lg-4">
-                                <div
-                                    className={`card h-100 border-0 shadow-sm
-                                        ${room.status === 2 ? 'bg-secondary-subtle text-dark' : ''}
-                                        ${room.status === 4 ? 'bg-danger-subtle text-dark' : ''}`}
-                                >
-                                <img 
-                                    src={room.houseImages?.[0]?.link ?? './img/imgLandingPage.png'}
-                                    className="card-img-top" 
-                                    alt={room.address} 
-                                    style={{ height: '200px', objectFit: 'cover' }} 
-                                />
-                                    <div className="card-body">
-                                        <div className="d-flex justify-content-between align-items-start mb-2">
-                                            <h5 className="card-title mb-0">{room.address}</h5>
-                                            <span className="badge bg-primary">{room.area.toLocaleString()}m²</span>
-                                        </div>
-                                        <p className="card-text text-muted small mb-3">{room.description}</p>
-                                        <div className="d-flex justify-content-between align-items-center">
-                                            
-                                                trạng thái :  {getStatusText(room.status)}
-                                            <div className="btn-group">
-                                                <button
-                                                    className="btn btn-outline-primary btn-sm"
-                                                    onClick={() => navigate(`/phong/${room.id}`)}
-                                                >
-                                                    <i className="bi bi-eye me-1"></i>
-                                                    Xem
-                                                </button>
-                                                <button
-                                                    className="btn btn-outline-danger btn-sm"
-                                                    onClick={() => handleDeleteRoom(room.id)}
-                                                >
-                                                    <i className="bi bi-trash me-1"></i>
-                                                    Xóa
-                                                </button>
+
+                    {rooms.length === 0 ? (
+                        <div className="text-center py-5">
+                            <h4 className="text-muted">Bạn chưa có phòng trọ nào</h4>
+                            <p className="text-muted">Hãy thêm phòng trọ đầu tiên của bạn!</p>
+                        </div>
+                    ) : (
+                        <div className="row g-4">
+                            {rooms.map(room => (
+                                <div key={room.id} className="col-md-6 col-lg-4">
+                                    <div
+                                        className={`card h-100 border-0 shadow-sm
+                                            ${room.status === 2 ? 'bg-secondary-subtle text-dark' : ''}
+                                            ${room.status === 4 ? 'bg-danger-subtle text-dark' : ''}`}
+                                    >
+                                    <img 
+                                        src={room.houseImages?.[0]?.link ?? './img/imgLandingPage.png'}
+                                        className="card-img-top" 
+                                        alt={room.address} 
+                                        style={{ height: '200px', objectFit: 'cover' }} 
+                                    />
+                                        <div className="card-body">
+                                            <div className="d-flex justify-content-between align-items-start mb-2">
+                                                <h5 className="card-title mb-0">{room.address}</h5>
+                                                <span className="badge bg-primary">{room.area.toLocaleString()}m²</span>
+                                            </div>
+                                            <p className="card-text text-muted small mb-3">{room.description}</p>
+                                            <div className="d-flex justify-content-between align-items-center">
+                                                
+                                                    trạng thái :  {getStatusText(room.status)}
+                                                <div className="btn-group">
+                                                    <button
+                                                        className="btn btn-outline-primary btn-sm"
+                                                        onClick={() => navigate(`/phong/${room.id}`)}
+                                                    >
+                                                        <i className="bi bi-eye me-1"></i>
+                                                        Xem
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-outline-danger btn-sm"
+                                                        onClick={() => handleDeleteRoom(room.id)}
+                                                    >
+                                                        <i className="bi bi-trash me-1"></i>
+                                                        Xóa
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
+                            ))}
+                        </div>
+                    )}
 
-                <CreateRoomModal 
-                    show={showCreateModal}
-                    onHide={() => setShowCreateModal(false)}
-                    onSubmit={(roomData) => {
-                        console.log(roomData);
-                        setShowCreateModal(false);
-                        fetchLandlordRooms(); // Refresh the room list after creating a new room
-                    }}
-                    fetchRooms={fetchLandlordRooms}
-                />
-            </>
-        )}
-    </div></div>
-        
+                    <CreateRoomModal 
+                        show={showCreateModal}
+                        onHide={() => setShowCreateModal(false)}
+                        onSubmit={(roomData) => {
+                            console.log(roomData);
+                            setShowCreateModal(false);
+                            fetchLandlordRooms(); // Refresh the room list after creating a new room
+                        }}
+                        fetchRooms={fetchLandlordRooms}
+                    />
+                </>
+            )}
+        </div>
+        </div>
     );
 };
 
