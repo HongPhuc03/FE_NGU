@@ -1,14 +1,7 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link  } from 'react-router-dom';
 
 const HeroSection = () => {
-    const [searchQuery, setSearchQuery] = useState('');
-    const navigate = useNavigate();
-
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        navigate(`/tim-tro?q=${encodeURIComponent(searchQuery)}`);
-    };
+    
 
     return (
         <div className="hero-section position-relative w-100" style={{ backgroundImage: 'url("./img/imgLandingPage.png")' }}>
