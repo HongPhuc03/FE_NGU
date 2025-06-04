@@ -195,6 +195,7 @@ const RoomDetail: React.FC = () => {
     const additionalImages = room?.houseImages && room.houseImages.length > 1 ? room.houseImages.slice(1, 4).map((image: HouseImage) => image.imageUrl) : [];
 
     return (
+        <div style={{ paddingTop: '80px' }}>
         <div className="container py-5">
             <div 
                 className="room-detail-container min-vh-100"
@@ -353,6 +354,7 @@ const RoomDetail: React.FC = () => {
                 }}
             />
             <ToastContainer />
+        </div>
         </div>
     );
 };

@@ -3,6 +3,14 @@ import { Table, Card, Badge } from 'react-bootstrap';
 import axios from 'axios';
 import type { AxiosError } from 'axios';
 
+interface SubscriptionPlan {
+    id: number;
+    name: string;
+    price: number;
+    duration: number;
+    // Add other fields as needed based on your API response
+}
+
 interface PaymentRecord {
     id: number;
     orderCode: number;
@@ -14,9 +22,9 @@ interface PaymentRecord {
     createdAt: string;
     paidAt: string | null;
     paymentURl: string | null;
-    subscriptionPlan: any | null;
+    subscriptionPlan: SubscriptionPlan | null;
 }
-
+const API_URL = import.meta.env.VITE_API_URL;
 const PaymentHistory: React.FC = () => {
     const [payments, setPayments] = useState<PaymentRecord[]>([]);
     const [loading, setLoading] = useState(true);
@@ -31,7 +39,7 @@ const PaymentHistory: React.FC = () => {
                 }
 
                 const response = await axios.post(
-                    'https://localhost:7135/api/Subscription/GetAllPayment',
+                    `${API_URL}/api/Subscription/GetAllPayment`,
                     {},
                     {
                         headers: {

@@ -40,8 +40,6 @@ interface Room {
     };
 }
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 const LandlordPage = () => {
     const [rooms, setRooms] = useState<Room[]>([]);
     const [loading, setLoading] = useState(true);
@@ -49,7 +47,7 @@ const LandlordPage = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const navigate = useNavigate();
     const [showModal, setShowModal] = useState(false);
-
+const API_URL = import.meta.env.VITE_API_URL;
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         
@@ -140,6 +138,7 @@ const LandlordPage = () => {
     }
 
     return (
+        <div style={{ paddingTop: '80px' }}>
         <div className="container py-2">
             <NotOwnerModal 
                 open={showModal} 
@@ -227,6 +226,8 @@ const LandlordPage = () => {
                 </>
             )}
         </div>
+        </div>
+
     );
 };
 

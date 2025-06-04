@@ -136,7 +136,8 @@ useEffect(() => {
   };
 
   return (
-    <div className="container py-5">
+      <div style={{ paddingTop: '80px' }}>
+        <div className="container py-5">
       <h2 className="mb-4">Trang quản trị</h2>
       <ul className="nav nav-tabs mb-4">
         <li className="nav-item">
@@ -233,6 +234,8 @@ useEffect(() => {
         </div>
       )}
     </div>
+      </div>
+    
   );
 };
 
