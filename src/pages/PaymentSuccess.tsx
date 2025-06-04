@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import  { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 
@@ -31,6 +31,7 @@ const PaymentSuccess = () => {
         }
       } catch (error) {
         setMessage({ type: 'error', text: 'Có lỗi xảy ra khi xác nhận thanh toán' });
+        console.error('Error confirming payment:', error);
       }
     };
   
