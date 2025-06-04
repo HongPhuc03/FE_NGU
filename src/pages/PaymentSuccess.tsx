@@ -1,7 +1,7 @@
 import  { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
-
+const API_URL = import.meta.env.VITE_API_URL;
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ const PaymentSuccess = () => {
   
     const handlePaymentSuccess = async () => {
       try {
-        const response = await axios.get(`https://localhost:7135/api/Subscription/success?orderCode=${orderCode}`, {
+        const response = await axios.get(`${API_URL}/api/Subscription/success?orderCode=${orderCode}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
   
