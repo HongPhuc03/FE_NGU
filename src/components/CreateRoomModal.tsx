@@ -34,6 +34,8 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ show, onHide, onSubmi
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const API_URL = import.meta.env.VITE_API_URL;
+
     // Parse price input
     const parsePrice = (value: string) => {
         const lower = value.toLowerCase().trim();
@@ -103,7 +105,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ show, onHide, onSubmi
             });
 
             const response = await axios.post(
-                'https://localhost:7135/api/House/CreateHouse',
+                `${API_URL}/api/House/CreateHouse`,
                 formDataToSend,
                 {
                     headers: {

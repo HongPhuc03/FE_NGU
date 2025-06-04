@@ -22,6 +22,7 @@ const AIChatBox = () => {
     const [inputMessage, setInputMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [isMinimized, setIsMinimized] = useState(false);
+    const API_URL = import.meta.env.VITE_API_URL;
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -48,7 +49,7 @@ const AIChatBox = () => {
         setInputMessage('');
 
         try {
-            const response = await fetch('https://localhost:7135/api/ChatBot/ChatBot', {
+            const response = await fetch(`${API_URL}/api/ChatBot/ChatBot`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

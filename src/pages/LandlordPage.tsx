@@ -40,6 +40,8 @@ interface Room {
     };
 }
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const LandlordPage = () => {
     const [rooms, setRooms] = useState<Room[]>([]);
     const [loading, setLoading] = useState(true);
@@ -77,7 +79,7 @@ const LandlordPage = () => {
 
     const fetchLandlordRooms = async () => {
         try {
-            const response = await axios.get('https://localhost:7135/api/House/GetAllHouseByUser', {
+            const response = await axios.get(`${API_URL}/api/House/GetAllHouseByUser`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('accessToken')}`
                 }
@@ -94,7 +96,7 @@ const LandlordPage = () => {
     const handleDeleteRoom = async (houseid: number) => {
         if (window.confirm('Are you sure you want to delete this room?')) {
             try {
-                await axios.delete(`https://localhost:7135/api/House/DeleteHouse?houseid=${houseid}`, {
+                await axios.delete(`${API_URL}/api/House/DeleteHouse?houseid=${houseid}`, {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('accessToken')}`
                     }

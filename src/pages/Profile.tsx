@@ -42,6 +42,8 @@ interface ProfileData {
   subscription: Subscription;
 }
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Profile = () => {
   const [profileData, setProfileData] = useState<ProfileData>({
     id: '',
@@ -69,7 +71,7 @@ const Profile = () => {
 
   const fetchProfileData = async () => {
     try {
-      const response = await axios.get('https://localhost:7135/api/User/UserDetail', {
+      const response = await axios.get(`${API_URL}/api/User/UserDetail`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -100,7 +102,7 @@ const Profile = () => {
         address: profileData.address || ''
       };
 
-      await axios.put('https://localhost:7135/api/User/UpdateUser', updateData, {
+      await axios.put(`${API_URL}/api/User/UpdateUser`, updateData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json'

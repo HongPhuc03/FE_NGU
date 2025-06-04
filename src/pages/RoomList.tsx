@@ -101,9 +101,12 @@ const RoomList = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
 
+    // Thay thế các URL API
+    const API_URL = import.meta.env.VITE_API_URL;
+
     const fetchUserInfo = async () => {
         try {
-            const response = await axios.get('https://localhost:7135/api/User/UserDetail', {
+            const response = await axios.get(`${API_URL}/api/User/UserDetail`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('accessToken')}`
                 }
@@ -129,7 +132,7 @@ const RoomList = () => {
 
     const fetchRooms = useCallback(async () => {
         try {
-            let url = 'https://localhost:7135/api/House/GetAllHouse';
+            let url = `${API_URL}/api/House/GetAllHouse`;
             const params = new URLSearchParams();
 
             if (minPrice) params.append('minPrice', minPrice);
@@ -151,7 +154,7 @@ const RoomList = () => {
             setError(err instanceof Error ? err.message : 'An error occurred');
             setLoading(false);
         }
-    }, [minPrice, maxPrice, addressFilter]);
+    }, [minPrice, maxPrice, addressFilter, API_URL]);
 
     useEffect(() => {
         fetchRooms();
@@ -159,7 +162,7 @@ const RoomList = () => {
 
     const initSignalR = useCallback(() => {
         const connection = new signalR.HubConnectionBuilder()
-            .withUrl("https://localhost:7135/houseHub", {
+            .withUrl(`${API_URL}/houseHub`, {
                 skipNegotiation: true,
                 transport: signalR.HttpTransportType.WebSockets
             })
