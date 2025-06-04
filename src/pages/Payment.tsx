@@ -1,5 +1,4 @@
 import axios from 'axios';
-import React from 'react';
 import styled from 'styled-components';
 
 const PaymentContainer = styled.div`
@@ -77,35 +76,32 @@ const RegisterButton = styled.button`
     background: #0052a3;
   }
 `;
-
 const API_URL = import.meta.env.VITE_API_URL;
-
-const handleRegister = async (planID : number) => {
-  try {
-    const token = localStorage.getItem("accessToken"); // Lấy token từ localStorage
-    const response = await axios.post(
-      `${API_URL}/api/Subscription/Choose-Sub`,
-      {
-        planId: planID ,
-        returnUrl: "http://localhost:5173/thanh-toan-thanh-cong", 
-        cancelUrl: "http://localhost:5173/payment",   // Trang nếu hủy thanh toán
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+ const handleRegister = async (planID : number) => {
+    try {
+      const token = localStorage.getItem("accessToken"); // Lấy token từ localStorage
+      const response = await axios.post(
+        `${API_URL}/api/Subscription/Choose-Sub`,
+        {
+          planId: planID ,
+          returnUrl: "https://fe-ngu-qaty.vercel.app/thanh-toan-thanh-cong", 
+          cancelUrl: "https://fe-ngu-qaty.vercel.app/payment",   // Trang nếu hủy thanh toán
         },
-      }
-    );
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-    const { data } = response;
-    console.log(data)
-    window.location.href =data;
-  } catch (error) {
-    console.error("Lỗi khi gọi API thanh toán:", error);
-  }
-};
-
+      const { data } = response;
+      console.log(data)
+      window.location.href =data;
+    } catch (error) {
+      console.error("Lỗi khi gọi API thanh toán:", error);
+    }
+  };
 const Payment = () => {
   return (
     <PaymentContainer>
