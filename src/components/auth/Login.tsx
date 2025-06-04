@@ -13,6 +13,8 @@ const Login = () => {
     const navigate = useNavigate();
     const { login } = useAuth();
     const [error, setError] = useState('');
+    const API_URL = import.meta.env.VITE_API_URL;
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -24,7 +26,7 @@ const Login = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const response = await axios.post('https://localhost:7135/api/Auth/Login', formData);
+            const response = await axios.post(`${API_URL}/api/Auth/Login`, formData);
             const { accessToken, appUser } = response.data;
             login(accessToken, appUser);
             navigate('/tim-tro');
@@ -50,7 +52,7 @@ const Login = () => {
 
         const idtoken = credentialResponse.credential;
         try {
-            const response = await axios.post('https://localhost:7135/api/Auth/Sign-in-google', { idtoken });
+            const response = await axios.post(`${API_URL}/api/Auth/Sign-in-google`, { idtoken });
             const { accessToken, appUser } = response.data;
             localStorage.setItem('idtoken', idtoken);
             login(accessToken, appUser);

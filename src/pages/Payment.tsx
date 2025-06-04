@@ -76,31 +76,35 @@ const RegisterButton = styled.button`
     background: #0052a3;
   }
 `;
- const handleRegister = async (planID : number) => {
-    try {
-      const token = localStorage.getItem("accessToken"); // Lấy token từ localStorage
-      const response = await axios.post(
-        "https://localhost:7135/api/Subscription/Choose-Sub",
-        {
-          planId: planID ,
-          returnUrl: "http://localhost:5173/thanh-toan-thanh-cong", 
-          cancelUrl: "http://localhost:5173/payment",   // Trang nếu hủy thanh toán
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
 
-      const { data } = response;
-      console.log(data)
-      window.location.href =data;
-    } catch (error) {
-      console.error("Lỗi khi gọi API thanh toán:", error);
-    }
-  };
+const API_URL = import.meta.env.VITE_API_URL;
+
+const handleRegister = async (planID : number) => {
+  try {
+    const token = localStorage.getItem("accessToken"); // Lấy token từ localStorage
+    const response = await axios.post(
+      `${API_URL}/api/Subscription/Choose-Sub`,
+      {
+        planId: planID ,
+        returnUrl: "http://localhost:5173/thanh-toan-thanh-cong", 
+        cancelUrl: "http://localhost:5173/payment",   // Trang nếu hủy thanh toán
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const { data } = response;
+    console.log(data)
+    window.location.href =data;
+  } catch (error) {
+    console.error("Lỗi khi gọi API thanh toán:", error);
+  }
+};
+
 const Payment = () => {
   return (
     <PaymentContainer>

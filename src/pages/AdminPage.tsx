@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import * as signalR from '@microsoft/signalr';
 import { useNavigate } from 'react-router-dom';
+
 interface appUser {
   address: string | null;
   avatar: string | null;
@@ -11,8 +12,6 @@ interface appUser {
   isDisable: boolean;
   number: string | null;
   numberOfHouse: number;
-  subscription: any | null;
-  userLocation: any | null;
   userName: string | null;
   userRole: number;
 }
@@ -24,6 +23,8 @@ interface Post {
   status: number;
   name: string;
 }
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const AdminPage: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -43,7 +44,7 @@ const AdminPage: React.FC = () => {
   const fetchPosts = useCallback(async () => {
     try {
       const response = await axios.get(
-        "https://localhost:7135/api/House/OrderByStatus",
+        `${API_URL}/api/House/OrderByStatus`,
       );
       setPosts(response.data);
       
@@ -59,7 +60,7 @@ const AdminPage: React.FC = () => {
   }, [fetchPosts]);
 
   const handleApprove = async (postId: number) => {
-    await axios.post(`https://localhost:7135/api/House/UpdateHouseStatus`, {
+    await axios.post(`${API_URL}/api/House/UpdateHouseStatus`, {
 
       houseId : postId,
       status : 0
@@ -68,7 +69,7 @@ const AdminPage: React.FC = () => {
   };
 
   const handleReject = async (postId: number) => {
-    await axios.post(`https://localhost:7135/api/House/UpdateHouseStatus`, {
+    await axios.post(`${API_URL}/api/House/UpdateHouseStatus`, {
       houseId : postId,
       status : 4
     });
@@ -80,7 +81,7 @@ const AdminPage: React.FC = () => {
 };
 const initSignalR = useCallback(() => {
   const connection = new signalR.HubConnectionBuilder()
-    .withUrl("https://localhost:7135/houseHub", {
+    .withUrl(`${API_URL}/houseHub`, {
       skipNegotiation: true,
       transport: signalR.HttpTransportType.WebSockets,
     })

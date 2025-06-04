@@ -135,11 +135,13 @@ const RoomDetail: React.FC = () => {
 
     const user1 = getUserFromLocalStorage();
 
+    const API_URL = import.meta.env.VITE_API_URL;
+
     const handleRentEmail = async (info?: { displayName: string, phoneNumber: string }) => {
         try {
             const displayNameToSend = info?.displayName || user1?.displayName;
             const phoneNumberToSend = info?.phoneNumber || user1?.phoneNumber;
-            const response = await axios.post('https://localhost:7135/api/Email/send-mail-rent', {
+            const response = await axios.post(`${API_URL}/api/Email/send-mail-rent`, {
                 userId: room?.appUser?.id,
                 diplayName: displayNameToSend,
                 phoneNumber: phoneNumberToSend,
@@ -154,7 +156,7 @@ const RoomDetail: React.FC = () => {
     useEffect(() => {
         const fetchRoomDetails = async () => {
             try {
-                const response = await axios.get(`https://localhost:7135/api/House/GetHouseById?id=${id}`);
+                const response = await axios.get(`${API_URL}/api/House/GetHouseById?id=${id}`);
                 const data = await response.data;
                 setRoom(data);
                 setLoading(false);
@@ -165,7 +167,7 @@ const RoomDetail: React.FC = () => {
             }
         };
         fetchRoomDetails();
-    }, [id]);
+    }, [id, API_URL]);
 
 
     // Thay đổi nút Thuê ngay:
