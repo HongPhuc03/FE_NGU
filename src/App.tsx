@@ -19,6 +19,7 @@ import Payment from './pages/Payment';
 import PaymentSuccess from './pages/PaymentSuccess';
 import AdminPage from './pages/AdminPage';
 import PaymentHistory from './components/PaymentHistory';
+import LienHe from './pages/LienHe';
 const App: React.FC = () => {
   return (
     <AuthProvider>
@@ -41,6 +42,7 @@ const App: React.FC = () => {
               <Route path="/thanh-toan-thanh-cong" element={<PaymentSuccess/>}/>
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/lich-su-thanh-toan" element={<PaymentHistory />} />
+              <Route path="/lien-he" element={<LienHe />} />
             </Routes>
           </main>
           <Footer />

@@ -1,15 +1,12 @@
+import React from 'react';
 import { useState, useRef, useEffect } from 'react';
 import './AIChatBox.css';
 
 interface Message {
     id: string;
-    text: string;
+    text: string | JSX.Element;
     sender: 'user' | 'ai';
     timestamp: Date;
-}
-
-interface ChatRequest {
-    question: string;
 }
 
 const AIChatBox = () => {
@@ -51,33 +48,49 @@ const AIChatBox = () => {
         setInputMessage('');
 
         try {
-            const request: ChatRequest = {
-                question: inputMessage
-            };
-
-            const response = await fetch('http://localhost:8080/api/chat/ask', {
+            const response = await fetch('https://localhost:7135/api/ChatBot/ChatBot', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                credentials: 'include',
-                body: JSON.stringify(request)
+                body: JSON.stringify(inputMessage)
             });
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const aiResponseText = await response.text();
+            const data = await response.json();
+            console.log(data.message.houses);
+            let aiMessageContent: string | JSX.Element = typeof data.message === 'string' ? data.message : JSON.stringify(data.message);
+
+            if (Array.isArray(data.message.houses) && data.message.houses.length > 0) {
+                aiMessageContent = (
+                    <div>
+                        <p>{data.message.message}</p>
+                        <ul className="list-unstyled mb-0">
+                            {data.message.houses.map((house: any) => (
+                                <li key={house.id}>
+                                    <a href={house.url} target="_blank" rel="noopener noreferrer">
+                                        {house.name}
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                );
+            }
 
             const aiResponse: Message = {
                 id: (Date.now() + 1).toString(),
-                text: aiResponseText,
+                text: aiMessageContent,
                 sender: 'ai',
                 timestamp: new Date()
             };
+
             setMessages(prev => [...prev, aiResponse]);
+
         } catch (error) {
             console.error('Error:', error);
             const errorMessage: Message = {
@@ -102,40 +115,26 @@ const AIChatBox = () => {
     return (
         <div className={`ai-chat-container ${isOpen ? 'open' : ''}`}>
             {/* Chat Toggle Button */}
-            <button
-                className="chat-toggle-btn"
-                onClick={toggleChat}
-                aria-label="Toggle chat"
-            >
+            <button className="chat-toggle-btn" onClick={toggleChat} aria-label="Toggle chat">
                 <i className={`bi ${isOpen ? 'bi-x-lg' : 'bi-chat-dots-fill'}`}></i>
             </button>
 
             {/* Chat Box */}
             <div className={`chat-box ${isMinimized ? 'minimized' : ''}`}>
-                {/* Chat Header */}
+                {/* Header */}
                 <div className="chat-header">
                     <div className="d-flex align-items-center">
-                        <img
-                            src="/img/logo-roomnear.png"
-                            alt="AI Assistant"
-                            className="ai-avatar"
-                        />
+                        <img src="/img/logo-roomnear.png" alt="AI Assistant" className="ai-avatar" />
                         <div className="ms-2">
                             <h6 className="mb-0">AI Assistant</h6>
                             <small className="text-muted">Online</small>
                         </div>
                     </div>
                     <div className="chat-actions">
-                        <button
-                            className="btn btn-link btn-sm p-0 me-2"
-                            onClick={toggleMinimize}
-                        >
+                        <button className="btn btn-link btn-sm p-0 me-2" onClick={toggleMinimize}>
                             <i className={`bi ${isMinimized ? 'bi-chevron-up' : 'bi-chevron-down'}`}></i>
                         </button>
-                        <button
-                            className="btn btn-link btn-sm p-0"
-                            onClick={toggleChat}
-                        >
+                        <button className="btn btn-link btn-sm p-0" onClick={toggleChat}>
                             <i className="bi bi-x-lg"></i>
                         </button>
                     </div>
@@ -144,19 +143,12 @@ const AIChatBox = () => {
                 {/* Chat Messages */}
                 <div className="chat-messages">
                     {messages.map((message) => (
-                        <div
-                            key={message.id}
-                            className={`message ${message.sender === 'ai' ? 'ai' : 'user'}`}
-                        >
+                        <div key={message.id} className={`message ${message.sender === 'ai' ? 'ai' : 'user'}`}>
                             {message.sender === 'ai' && (
-                                <img
-                                    src="/img/logo-roomnear.png"
-                                    alt="AI"
-                                    className="message-avatar"
-                                />
+                                <img src="/img/logo-roomnear.png" alt="AI" className="message-avatar" />
                             )}
                             <div className="message-content">
-                                <p>{message.text}</p>
+                                {typeof message.text === 'string' ? <p>{message.text}</p> : message.text}
                                 <small className="message-time">
                                     {message.timestamp.toLocaleTimeString([], {
                                         hour: '2-digit',
@@ -169,7 +161,7 @@ const AIChatBox = () => {
                     <div ref={messagesEndRef} />
                 </div>
 
-
+                {/* Input */}
                 <form onSubmit={handleSubmit} className="chat-input">
                     <input
                         type="text"

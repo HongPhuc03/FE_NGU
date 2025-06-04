@@ -80,7 +80,8 @@ const PaymentHistory: React.FC = () => {
     }
 
     return (
-        <Card className="m-4">
+        <div style={{ paddingTop: '100px' }}>
+            <Card className="m-4"  >
             <Card.Header>
                 <h4 className="mb-0">Lịch sử thanh toán</h4>
             </Card.Header>
@@ -94,7 +95,6 @@ const PaymentHistory: React.FC = () => {
                             <th>Trạng thái</th>
                             <th>Ngày tạo</th>
                             <th>Ngày thanh toán</th>
-                            <th>Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -113,18 +113,6 @@ const PaymentHistory: React.FC = () => {
                                     <td>{getStatusBadge(payment.status)}</td>
                                     <td>{formatDate(payment.createdAt)}</td>
                                     <td>{payment.paidAt ? formatDate(payment.paidAt) : '-'}</td>
-                                    <td>
-                                        {payment.status === 0 && payment.paymentURl && (
-                                            <a 
-                                                href={payment.paymentURl} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer"
-                                                className="btn btn-primary btn-sm"
-                                            >
-                                                Thanh toán
-                                            </a>
-                                        )}
-                                    </td>
                                 </tr>
                             ))
                         )}
@@ -132,6 +120,7 @@ const PaymentHistory: React.FC = () => {
                 </Table>
             </Card.Body>
         </Card>
+        </div>
     );
 };
 

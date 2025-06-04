@@ -43,7 +43,8 @@ const PaymentSuccess = () => {
   
 
   return (
-    <div className="container py-5">
+    <div style={{paddingTop: '80px'}}>
+      <div className="container py-5">
       <div className="row justify-content-center">
         <div className="col-md-6">
           <div className="card shadow-sm">
@@ -79,6 +80,7 @@ const PaymentSuccess = () => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

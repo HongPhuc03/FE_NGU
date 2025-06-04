@@ -108,7 +108,7 @@ const RoomList = () => {
                     Authorization: `Bearer ${localStorage.getItem('accessToken')}`
                 }
             });
-            console.log(response.data.userLocation)
+            console.log(response.data.displayName)
             if (response.data && response.data.userLocation) {
                 setUserLocation({
                     id: response.data.userLocation.id,
@@ -144,6 +144,7 @@ const RoomList = () => {
             if (!response.data) {
                 throw new Error('Failed to fetch rooms');
             }
+            console.log(response.data);
             setRooms(response.data);
             setLoading(false);
         } catch (err) {
@@ -533,7 +534,7 @@ const center: [number, number] =
                                         </div>
                                         <p className="card-text text-muted small mb-3">{room.description}</p>
                                         <div className="d-flex justify-content-between text-muted small">
-                                            <span><i className="bi bi-people me-1"></i>{room.appUser?.displayName || '-'}</span>
+                                            <span><i className="bi bi-people me-1"></i>{room.appUser?.displayName}</span>
                                         </div>
                                         <div className="mt-3 d-grid">
                                             <button

@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     return (
         <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>
-            <div className="container py-5" style={{ marginTop: '80px' }}>
+            <div >
                 {children}
             </div>
         </AuthContext.Provider>

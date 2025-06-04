@@ -68,6 +68,8 @@ const Header = () => {
 
     const handleLogout = () => {
         localStorage.removeItem("accessToken");
+        localStorage.removeItem("idtoken");
+        localStorage.removeItem("user");
         setIsAuthenticated(false);
         setUser(null);
         navigate("/dang-nhap")
@@ -109,14 +111,12 @@ const Header = () => {
                             <li className="nav-item">
                                 <Link to="/tim-tro" className="nav-link px-3">Tìm trọ</Link>
                             </li>
-                            <li className="nav-item">
-                                <Link to="/dang-tin" className="nav-link px-3">Đăng tin</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link to="/cong-dong" className="nav-link px-3">Cộng đồng</Link>
-                            </li>
+                            
                             <li className="nav-item">
                                 <Link to="/chu-ho" className="nav-link px-3">Chủ hộ</Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link to="/lien-he" className="nav-link px-3">Liên hệ</Link>
                             </li>
                         </ul>
 

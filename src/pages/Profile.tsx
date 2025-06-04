@@ -115,7 +115,7 @@ const Profile = () => {
 
   return (
     <div className="container py-5">
-      <div className="row justify-content-center">
+      <div className="row justify-content-center "style={{paddingTop: '80px'}}>
         <div className="col-md-8">
           <div className="card shadow-sm">
             <div className="card-body p-4">

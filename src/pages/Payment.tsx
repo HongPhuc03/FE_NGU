@@ -5,6 +5,7 @@ import styled from 'styled-components';
 const PaymentContainer = styled.div`
   padding: 40px 20px;
   text-align: center;
+  padding-top: 100px;
 `;
 
 const Title = styled.h1`
@@ -35,6 +36,7 @@ const Package = styled.div`
   flex-direction: column;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   transition: transform 0.2s ease-in-out;
+  position: relative;
   
   &:hover {
     transform: translateY(-5px);
@@ -127,7 +129,8 @@ const Payment = () => {
 
         </Package>
 
-        <Package>
+        <Package style={{ position: 'relative' }}>
+          <span className="recommend-tag">KHUYÊN DÙNG</span>
           <PackageTitle>GÓI Ultra</PackageTitle>
           <Price>1.000.000 VND/năm</Price>
           <Feature>Thời gian phổ biến</Feature>
