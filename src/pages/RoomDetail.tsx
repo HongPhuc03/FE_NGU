@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { useAuth } from '../contexts/AuthContext';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -125,11 +124,9 @@ const EnterInfoModal: React.FC<EnterInfoModalProps> = ({ isOpen, onClose, onSubm
 
 const RoomDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
-    const { user } = useAuth();
     const [room, setRoom] = useState<Room | null>(null);
     const [loading, setLoading] = useState(true);
     const [showEnterInfoModal, setShowEnterInfoModal] = useState(false);
-    const [mainImageIndex, setMainImageIndex] = useState(0);
 
     const getUserFromLocalStorage = () => {
         const userData = localStorage.getItem('user');
@@ -137,7 +134,6 @@ const RoomDetail: React.FC = () => {
     };
 
     const user1 = getUserFromLocalStorage();
-    const navigate = useNavigate();
 
     const handleRentEmail = async (info?: { displayName: string, phoneNumber: string }) => {
         try {
@@ -171,17 +167,6 @@ const RoomDetail: React.FC = () => {
         fetchRoomDetails();
     }, [id]);
 
-    const handleChatClick = () => {
-        if (!user) {
-            // Nếu chưa đăng nhập, chuyển hướng đến trang đăng nhập
-            navigate('/dang-nhap');
-            return;
-        }
-        if (room) {
-            navigate(`/chat/${room.appUser.id}`);
-            console.log('HELLO');
-        }
-    };
 
     // Thay đổi nút Thuê ngay:
     // Nếu chưa đăng nhập, mở modal nhập info, nếu đã đăng nhập thì gửi mail luôn
@@ -204,8 +189,8 @@ const RoomDetail: React.FC = () => {
     }
 
     const defaultImage = '/img/imgLandingPage.png';
-    const houseImages = room?.houseImages && room.houseImages.length > 0 ? room.houseImages : [];
-    const mainImage = houseImages.length > 0 ? houseImages[mainImageIndex].imageUrl : defaultImage;
+    const mainImage = room?.houseImages && room.houseImages.length > 0 ? room.houseImages[0].imageUrl : defaultImage;
+    const additionalImages = room?.houseImages && room.houseImages.length > 1 ? room.houseImages.slice(1, 4).map((image: HouseImage) => image.imageUrl) : [];
 
     return (
         <div className="container py-5">
@@ -238,33 +223,19 @@ const RoomDetail: React.FC = () => {
                         </div>
 
                         {/* Thư viện ảnh */}
-                        <div className="container-fluid px-0 mb-3">
+                        <div className="container-fluid px-0">
                             <div className="row g-2">
-                                {/* Ảnh chính */}
                                 <div className="col-12 col-md-8">
-                                    <img src={mainImage} alt="Ảnh chính" className="w-100" style={{ height: '350px', objectFit: 'cover', borderRadius: '8px', transition: '0.3s' }} />
+                                    <img src={mainImage} alt="Ảnh chính" className="w-100" style={{ height: '350px', objectFit: 'cover', borderRadius: '8px' }} />
                                 </div>
-                                {/* List thumbnail */}
-                                <div className="col-12 col-md-4 d-flex flex-md-column flex-row gap-2 align-items-md-start align-items-center" style={{ maxHeight: '350px', overflowY: 'auto' }}>
-                                    {houseImages.map((img, idx) => (
-                                        <img
-                                            key={img.id}
-                                            src={img.imageUrl}
-                                            alt={`Ảnh phòng ${idx + 1}`}
-                                            className={`rounded mb-md-2 ${mainImageIndex === idx ? 'border border-primary border-3 shadow' : 'border'} thumbnail-img`}
-                                            style={{
-                                                width: '100px',
-                                                height: '70px',
-                                                objectFit: 'cover',
-                                                cursor: 'pointer',
-                                                transition: 'border 0.2s, box-shadow 0.2s',
-                                                boxShadow: mainImageIndex === idx ? '0 0 8px #0d6efd55' : 'none',
-                                                marginBottom: '12px',
-                                                background: '#fff'
-                                            }}
-                                            onClick={() => setMainImageIndex(idx)}
-                                        />
-                                    ))}
+                                <div className="col-md-4 d-none d-md-block">
+                                    <div className="row g-2">
+                                        {additionalImages.map((image, index) => (
+                                            <div key={index} className="col-12">
+                                                <img src={image} alt={`Ảnh phòng ${index + 2}`} className="w-100" style={{ height: '114px', objectFit: 'cover', borderRadius: '8px' }} />
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -357,7 +328,6 @@ const RoomDetail: React.FC = () => {
                                     <button 
                                         className="btn btn-outline-primary py-2 fw-bold" 
                                         style={{ fontSize: '14px' }}
-                                        onClick={handleChatClick}
                                     >
                                         <i className="bi bi-chat-dots me-2"></i>
                                         NHẮN TIN

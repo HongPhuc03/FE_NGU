@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 
 interface SubscriptionPlan {
@@ -77,6 +76,7 @@ const Profile = () => {
       });
       setProfileData(response.data);
     } catch (error) {
+      console.error('Error fetching profile data:', error);
       setMessage({ type: 'error', text: 'Failed to load profile data' });
     }
   };
@@ -110,6 +110,7 @@ const Profile = () => {
       setIsEditing(false);
     } catch (error) {
       setMessage({ type: 'error', text: 'Failed to update profile' });
+      console.error('Error updating profile:', error);
     }
   };
 
