@@ -102,7 +102,7 @@ const RoomList = () => {
     const { user } = useAuth();
 
     // Thay thế các URL API
-    const API_URL = import.meta.env.VITE_API_URL;
+    const API_URL = import.meta.env.VITE_API_URL || "https://roomate-production.up.railway.app";
 
     const fetchUserInfo = async () => {
         try {
@@ -207,10 +207,10 @@ const RoomList = () => {
 
     const defaultCenter: [number, number] = [16.047079, 108.206230];
 
-const center: [number, number] =
-  userLocation?.lat != null && userLocation?.ing != null
-    ? [userLocation.lat, userLocation.ing]
-    : defaultCenter;
+    const center: [number, number] =
+        userLocation?.lat != null && userLocation?.ing != null
+            ? [userLocation.lat, userLocation.ing]
+            : defaultCenter;
 
 
     // Calculate pagination
@@ -309,9 +309,9 @@ const center: [number, number] =
                     {userMarker}
                     {rooms.map((room) => (
                         room.absoluteLocation &&
-                        typeof room.absoluteLocation.latitude === 'number' && 
+                        typeof room.absoluteLocation.latitude === 'number' &&
                         !isNaN(room.absoluteLocation.latitude) &&
-                        typeof room.absoluteLocation.longitude === 'number' && 
+                        typeof room.absoluteLocation.longitude === 'number' &&
                         !isNaN(room.absoluteLocation.longitude) && (
                             <React.Fragment key={room.id}>
                                 <Marker
@@ -373,7 +373,7 @@ const center: [number, number] =
                                             }}>
                                                 {room.area?.toLocaleString() || '0'}m²
                                             </span>
-                                            <Link 
+                                            <Link
                                                 to={`/phong/${room.id}`}
                                                 style={{
                                                     display: 'block',
@@ -429,18 +429,18 @@ const center: [number, number] =
                                         </div>
                                     </Popup>
                                 </Marker>
-                                {room.absoluteLocation && 
-                                 typeof room.absoluteLocation.latitude === 'number' && 
-                                 !isNaN(room.absoluteLocation.latitude) &&
-                                 typeof room.absoluteLocation.longitude === 'number' && 
-                                 !isNaN(room.absoluteLocation.longitude) && (
-                                    <Suspense fallback={null}>
-                                        <ZoomToMarker
-                                            position={[room.absoluteLocation.latitude, room.absoluteLocation.longitude]}
-                                            isSelected={selectedRoom?.id === room.id}
-                                        />
-                                    </Suspense>
-                                )}
+                                {room.absoluteLocation &&
+                                    typeof room.absoluteLocation.latitude === 'number' &&
+                                    !isNaN(room.absoluteLocation.latitude) &&
+                                    typeof room.absoluteLocation.longitude === 'number' &&
+                                    !isNaN(room.absoluteLocation.longitude) && (
+                                        <Suspense fallback={null}>
+                                            <ZoomToMarker
+                                                position={[room.absoluteLocation.latitude, room.absoluteLocation.longitude]}
+                                                isSelected={selectedRoom?.id === room.id}
+                                            />
+                                        </Suspense>
+                                    )}
                             </React.Fragment>
                         )
                     ))}
@@ -463,9 +463,9 @@ const center: [number, number] =
                                 <span className="input-group-text bg-light border-end-0">
                                     <i className="bi bi-currency-dollar"></i>
                                 </span>
-                                <input 
-                                    type="number" 
-                                    className="form-control border-start-0" 
+                                <input
+                                    type="number"
+                                    className="form-control border-start-0"
                                     placeholder="Giá thấp nhất"
                                     value={minPrice}
                                     onChange={(e) => setMinPrice(e.target.value)}
@@ -477,9 +477,9 @@ const center: [number, number] =
                                 <span className="input-group-text bg-light border-end-0">
                                     <i className="bi bi-currency-dollar"></i>
                                 </span>
-                                <input 
-                                    type="number" 
-                                    className="form-control border-start-0" 
+                                <input
+                                    type="number"
+                                    className="form-control border-start-0"
                                     placeholder="Giá cao nhất"
                                     value={maxPrice}
                                     onChange={(e) => setMaxPrice(e.target.value)}
@@ -491,9 +491,9 @@ const center: [number, number] =
                                 <span className="input-group-text bg-light border-end-0">
                                     <i className="bi bi-geo-alt"></i>
                                 </span>
-                                <input 
-                                    type="text" 
-                                    className="form-control border-start-0" 
+                                <input
+                                    type="text"
+                                    className="form-control border-start-0"
                                     placeholder="Nhập địa chỉ"
                                     value={addressFilter}
                                     onChange={(e) => setAddressFilter(e.target.value)}
@@ -524,11 +524,11 @@ const center: [number, number] =
                                 }}
                             >
                                 <div className={`card h-100 border-0 shadow-sm ${selectedRoom?.id === room.id ? 'border border-primary' : ''}`}>
-                                    <img 
+                                    <img
                                         src={room.houseImages?.[0]?.imageUrl ?? './img/imgLandingPage.png'}
-                                        className="card-img-top" 
-                                        alt={room.address} 
-                                        style={{ height: '200px', objectFit: 'cover' }} 
+                                        className="card-img-top"
+                                        alt={room.address}
+                                        style={{ height: '200px', objectFit: 'cover' }}
                                     />
                                     <div className="card-body">
                                         <div className="d-flex justify-content-between align-items-start mb-2">
@@ -559,8 +559,8 @@ const center: [number, number] =
                 <nav aria-label="Page navigation" className="mt-4">
                     <ul className="pagination justify-content-center">
                         <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                            <button 
-                                className="page-link" 
+                            <button
+                                className="page-link"
                                 onClick={() => handlePageChange(currentPage - 1)}
                                 disabled={currentPage === 1}
                             >
@@ -569,8 +569,8 @@ const center: [number, number] =
                         </li>
                         {[...Array(totalPages)].map((_, index) => (
                             <li key={index + 1} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
-                                <button 
-                                    className="page-link" 
+                                <button
+                                    className="page-link"
                                     onClick={() => handlePageChange(index + 1)}
                                 >
                                     {index + 1}
@@ -578,8 +578,8 @@ const center: [number, number] =
                             </li>
                         ))}
                         <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                            <button 
-                                className="page-link" 
+                            <button
+                                className="page-link"
                                 onClick={() => handlePageChange(currentPage + 1)}
                                 disabled={currentPage === totalPages}
                             >
@@ -591,7 +591,7 @@ const center: [number, number] =
             </div>
 
             <Suspense fallback={null}>
-                <CreateRoomModal 
+                <CreateRoomModal
                     show={showCreateModal}
                     onHide={() => setShowCreateModal(false)}
                     onSubmit={(roomData) => {
