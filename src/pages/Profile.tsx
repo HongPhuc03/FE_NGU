@@ -108,7 +108,7 @@ const Profile = () => {
           'Content-Type': 'application/json'
         }
       });
-      setMessage({ type: 'success', text: 'Profile updated successfully' });
+      setMessage({ type: 'success', text: 'Chỉnh sửa thành công' });
       setIsEditing(false);
     } catch (error) {
       setMessage({ type: 'error', text: 'Failed to update profile' });
@@ -118,7 +118,7 @@ const Profile = () => {
 
   return (
     <div className="container py-5">
-      <div className="row justify-content-center "style={{paddingTop: '80px'}}>
+      <div className="row justify-content-center " style={{ paddingTop: '80px' }}>
         <div className="col-md-8">
           <div className="card shadow-sm">
             <div className="card-body p-4">
