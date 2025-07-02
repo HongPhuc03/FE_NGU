@@ -133,6 +133,7 @@ const RoomList = () => {
     const fetchRooms = useCallback(async () => {
         try {
             let url = `${API_URL}/api/House/GetAllHouse`;
+            
             const params = new URLSearchParams();
 
             if (minPrice) params.append('minPrice', minPrice);

@@ -26,7 +26,8 @@ const Login = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const response = await axios.post(`${API_URL}/api/Auth/Login`, formData);
+            // const response = await axios.post(`${API_URL}/api/Auth/Login`, formData);
+            const response = await axios.post(`http://localhost:5104/api/Auth/Login`, formData);
             const { accessToken, appUser } = response.data;
             login(accessToken, appUser);
             navigate('/tim-tro');
