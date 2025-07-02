@@ -80,8 +80,7 @@ const API_URL = import.meta.env.VITE_API_URL;
  const handleRegister = async (planID : number) => {
     try {
       const token = localStorage.getItem("accessToken"); // Lấy token từ localStorage
-      const response = await axios.post(
-        `${API_URL}/api/Subscription/Choose-Sub`,
+      const response = await axios.post(`${API_URL}/api/Subscription/Choose-Sub`,
         {
           planId: planID ,
           returnUrl: "https://fe-ngu-qaty.vercel.app/thanh-toan-thanh-cong", 
