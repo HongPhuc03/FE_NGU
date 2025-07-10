@@ -24,7 +24,7 @@ interface PaymentRecord {
     paymentURl: string | null;
     subscriptionPlan: SubscriptionPlan | null;
 }
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || 'https://exe-production-f23e.up.railway.app';
 const PaymentHistory: React.FC = () => {
     const [payments, setPayments] = useState<PaymentRecord[]>([]);
     const [loading, setLoading] = useState(true);

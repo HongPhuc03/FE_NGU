@@ -13,7 +13,7 @@ const Login = () => {
     const navigate = useNavigate();
     const { login } = useAuth();
     const [error, setError] = useState('');
-    const API_URL = import.meta.env.VITE_API_URL;
+    const API_URL = import.meta.env.VITE_API_URL || 'https://exe-production-f23e.up.railway.app';
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;

@@ -34,7 +34,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ show, onHide, onSubmi
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const API_URL = import.meta.env.VITE_API_URL;
+    const API_URL = import.meta.env.VITE_API_URL || 'https://exe-production-f23e.up.railway.app'; // Replace with your API URL
 
     // Parse price input
     const parsePrice = (value: string) => {

@@ -47,7 +47,7 @@ const LandlordPage = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const navigate = useNavigate();
     const [showModal, setShowModal] = useState(false);
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || 'https://exe-production-f23e.up.railway.app';
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         

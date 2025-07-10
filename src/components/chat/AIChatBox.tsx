@@ -22,7 +22,7 @@ const AIChatBox = () => {
     const [inputMessage, setInputMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [isMinimized, setIsMinimized] = useState(false);
-    const API_URL = import.meta.env.VITE_API_URL;
+    const API_URL = import.meta.env.VITE_API_URL || 'https://exe-production-f23e.up.railway.app'; // Replace with your API URL
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

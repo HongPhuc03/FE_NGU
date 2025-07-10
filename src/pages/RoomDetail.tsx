@@ -135,7 +135,7 @@ const RoomDetail: React.FC = () => {
 
     const user1 = getUserFromLocalStorage();
 
-    const API_URL = import.meta.env.VITE_API_URL || "https://roomate-production.up.railway.app";
+    const API_URL = import.meta.env.VITE_API_URL || "https://exe-production-f23e.up.railway.app";
 
     const handleRentEmail = async (info?: { displayName: string, phoneNumber: string }) => {
         try {

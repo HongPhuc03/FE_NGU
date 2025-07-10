@@ -102,7 +102,7 @@ const RoomList = () => {
     const { user } = useAuth();
 
     // Thay thế các URL API
-    const API_URL = import.meta.env.VITE_API_URL || "https://roomate-production.up.railway.app";
+    const API_URL = import.meta.env.VITE_API_URL || "https://exe-production-f23e.up.railway.app";
 
     const fetchUserInfo = async () => {
         try {

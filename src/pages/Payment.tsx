@@ -76,7 +76,7 @@ const RegisterButton = styled.button`
     background: #0052a3;
   }
 `;
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || "https://exe-production-f23e.up.railway.app"; // Thay thế bằng URL API của bạn
  const handleRegister = async (planID : number) => {
     try {
       const token = localStorage.getItem("accessToken"); // Lấy token từ localStorage
