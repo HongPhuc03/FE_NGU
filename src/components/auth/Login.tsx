@@ -13,7 +13,7 @@ const Login = () => {
     const navigate = useNavigate();
     const { login } = useAuth();
     const [error, setError] = useState('');
-    const API_URL = import.meta.env.VITE_API_URL;
+    const API_URL = import.meta.env.VITE_API_URL || 'https://exe-production-f23e.up.railway.app';
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -26,6 +26,7 @@ const Login = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            
              const response = await axios.post(`${API_URL}/api/Auth/Login`, formData);
             //const response = await axios.post(`http://localhost:5104/api/Auth/Login`, formData);
             const { accessToken, appUser } = response.data;
